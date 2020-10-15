@@ -12,4 +12,6 @@ requisito:
 terminar nas notas certas
 
 tarefas:
-Encontrar uma forma de fazer a AI tocar audios MIDI
+Encontrar uma forma de fazer a AI tocar audios - OK
+Econtrar forma de AI "ouvir" input do teclado (MIDI)
+
