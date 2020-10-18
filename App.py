@@ -27,7 +27,7 @@ class AIHeroUI(App):
         self.chord_transition_time = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]
         self.melody_notes = []
         self.plot = MeshLinePlot(color=[1, 0, 0, 1])
-        self.fitness_function = Fitness(0, 0, 0, 0, 12, 0, 0)
+        self.fitness_function = Fitness(0, 0, 0, 0, 0, 0, 0, 0)
         self.stop = False
         self.graph = Graph(xlabel='tempo', ylabel='Notas', x_ticks_minor=5,
                            x_ticks_major=25, y_ticks_major=1,
@@ -52,10 +52,10 @@ class AIHeroUI(App):
         box_parameter.add_widget(self.buildDropdownInput('scale', scales), 1)
         box_parameter.add_widget(self.buildTextInput('chord_sequence', self.chord_sequence), 1)
         box_parameter_fitness.add_widget(self.buildSliderInput('Notas nos acordes', self.fitness_function.w1))
-        # box_parameter_fitness.add_widget(self.buildSliderInput('Nota inicial ', self.fitness_function.w2))
+        box_parameter_fitness.add_widget(self.buildSliderInput('Notas no tempo', self.fitness_function.w8))
         box_parameter_fitness.add_widget(self.buildSliderInput('Intervalos entre notas', self.fitness_function.w3))
         box_parameter_fitness.add_widget(self.buildSliderInput('Numero de repetições', self.fitness_function.w4))
-        box_parameter_fitness.add_widget(self.buildSliderInput('Pitch', self.fitness_function.w5, 0, 36))
+        box_parameter_fitness.add_widget(self.buildSliderInput('Pitch', self.fitness_function.w5, -12, 12))
         box_parameter_fitness.add_widget(self.buildSliderInput('Variedade de notas', self.fitness_function.w6))
         box_parameter_fitness.add_widget(self.buildSliderInput('Notas em sequencia', self.fitness_function.w7))
         box_parameter_setup.add_widget(box_parameter)
@@ -85,8 +85,8 @@ class AIHeroUI(App):
         def on_value_change(instance, v):
             if name == 'Notas nos acordes':
                 self.fitness_function.w1 = v
-            if name == '-':
-                self.fitness_function.w2 = v
+            if name == 'Notas no tempo ou contra tempo':
+                self.fitness_function.w8 = v
             if name == 'Intervalos entre notas':
                 self.fitness_function.w3 = v
             if name == 'Numero de repetições':
@@ -97,11 +97,13 @@ class AIHeroUI(App):
                 self.fitness_function.w6 = v
             if name == 'Notas em sequencia':
                 self.fitness_function.w7 = v
+            label.text = name + " (" + str(round(v)) + ")"
 
         box = BoxLayout()
         box.size_hint_y = None
         box.height = 60
-        label = Label(text=name, size_hint=(0.4, 1))
+        label_txt = name + " (" + str(value) + ")"
+        label = Label(text=label_txt, size_hint=(0.4, 1))
         variable = Slider(min=min, max=max, value=value, size_hint=(0.6, 1))
         variable.bind(value=on_value_change)
         box.add_widget(label)
