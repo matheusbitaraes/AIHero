@@ -1,6 +1,7 @@
 from random import random, randrange
 
 import numpy as np
+from mingus.containers import Bar, Track
 
 from src.Fitness import Fitness
 from mingus.containers.note import Note
@@ -24,11 +25,14 @@ class AIHero:
         self.pm = 0.05  # probabilidade de mutação de um filho
         self.pnm = 0.02  # probabilidade de mutação de uma nota, quando o filho por mutadolugar
         self.chord_note_prob = 0.05  # probabilidade de uma nota da melodia (população inicial) ser uma nota pertencente ao acorde
-        self.next_note_range = 6  # distancia máxima em semitons entre duas notas (população inicial)
+        self.next_note_range = 8  # distancia máxima em semitons entre duas notas (população inicial)
         self.fitness_function = fitness_function
 
     def generateMelodyArray(self, compassId=None):  # retorna um array com notas por fusa, resultado da otimização
         notes = []
+        note_track = Track()
+        note_bar = Bar()
+        rest_count = 0
 
         if compassId is None:
             # itera nos compassos
@@ -40,42 +44,33 @@ class AIHero:
 
                 # transforma em notas
                 for j in range(0, len(note_array)):
-                    # p = p + 1
                     if note_array[j] > -1:
                         note = int(self.central_note - 12 + note_array[j])
-                        # plota nota no gráfico
-                        # plt.scatter(p, note, color='b')
-                        # plot_notes.append(note)
-                        # plot_interval.append(p)
                     notes.append(Note().from_int(note))
                 else:
                     notes.append(Note().empty())
-
-                # plt.plot(plot_interval, plot_notes, color='b')
-                # plt.pause(0.005)
-            # plt.ioff()
         else:
             compass_chord = self.chord_sequence[compassId]  # acorde do inicio do compasso
+            # note_track.from_chords([chord_names[compass_chord]], 1)
+
             # pega array resultado da otimização
             note_array = self.geneticAlgorithm(compass_chord)
 
-            # transforma em notas
+            # transform in notes
             for j in range(0, len(note_array)):
-                # p = p + 1
                 if note_array[j] > -1:
+                    if rest_count > 0:  # add rest before note
+                        note_bar.place_rest(32/rest_count)
+                    rest_count = 0
                     note = int(self.central_note - 12 + note_array[j])
-                    # plota nota no gráfico
-                    # plt.scatter(p, note, color='b')
-                    # plot_notes.append(note)
-                    # plot_interval.append(p)
-                    notes.append(Note().from_int(note))
+                    note_bar.place_notes(Note().from_int(note), 32)  # todo: future improvements is to set notes other than fuse
                 else:
-                    notes.append(Note().empty())
-
-            # plt.plot(plot_interval, plot_notes, color='b')
-            # plt.pause(0.005)
-
-        return notes
+                    rest_count += 1
+                if note_bar.is_full():
+                    note_track + note_bar
+                    note_bar = Bar()  # create a new bar
+        note_track + note_bar
+        return note_track
 
     def geneticAlgorithm(self, compass_chord):
         total_notes = self.pulses_on_compass * self.fuse

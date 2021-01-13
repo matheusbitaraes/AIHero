@@ -3,10 +3,10 @@ import time
 from src.AISynth import AISynth
 from src.resources import *
 from mingus.containers.note import Note
-from mingus.containers import Bar, NoteContainer
+from mingus.containers import Bar, NoteContainer, Track
 import mingus.extra.lilypond as LilyPond
 
-bpm = 80
+bpm = 100
 central_note = 60
 scale = 'minor_blues_scale'
 pulses_on_compass = 4
@@ -28,23 +28,28 @@ for lick in licks:
     total_duration = 60 / bpm * pulses_on_compass  # time of a beat(ms) * number of beats
     fuse = 60 / (bpm * 8)  # duration of 'fuse' note in seconds
 
-    # transforma em notas
-    notes = []
-    for j in range(0, len(lick)):
-        # p = p + 1
-        if lick[j] != None and lick[j] > -1:
-            note = int(central_note + lick[j])
-            notes.append(Note().from_int(note))
+    # transform in notes
+    note_array = lick
+    rest_count = 0
+    note_bar = Bar()
+    note_track = Track()
+    for j in range(0, len(note_array)):
+        if note_array[j] > -1:
+            if rest_count > 0:  # add rest before note
+                note_bar.place_rest(32/rest_count)
+            rest_count = 0
+            note = int(central_note + note_array[j])
+            note_bar.place_notes(Note().from_int(note), 32)  # todo: future improvements is to set notes other than fuse
         else:
-            notes.append(Note().empty())
+            rest_count += 1
+        if note_bar.is_full():
+            note_track + note_bar
+            note_bar = Bar()  # create a new bar
+    note_track + note_bar
 
-    print('executing phrase {}'.format(lick))
     initial_time = synth.schedule_melody(
-        initial_time, fuse, '1', central_note, notes)
+        initial_time, fuse, None, central_note, note_track)
 
-    updateMusicSheet(notes)
-
-    time.sleep(total_duration)
-time.sleep(16 * fuse)
+time.sleep(initial_time/1000)
 
 

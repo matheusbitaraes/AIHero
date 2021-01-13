@@ -11,6 +11,8 @@ from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 from mingus.containers import Bar, Track
 import mingus.extra.lilypond as LilyPond
+from mingus.midi import fluidsynth
+import time
 
 from src.AIHero import AIHero
 from src.AISynth import AISynth
@@ -31,7 +33,7 @@ class AIHeroUI(App):
         self.scaleName = 'minor_blues_scale'
         self.chord_sequence = ['1-7', '4-7', '1-7', '1-7', '4-7', '4-7', '1-7', '1-7', '5-7', '4-7', '1-7', '5-7']
         self.chord_transition_time = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]
-        self.melody_notes = []
+        self.melody_notes = Track()
         # self.plot = MeshLinePlot(color=[1, 0, 0, 1])
         self.fitness_function = Fitness(0, 0, 0, 0, 0, 0, 0, 0)
         self.stop = False
@@ -89,22 +91,7 @@ class AIHeroUI(App):
     #         i += 1
     #     self.plot.points = points
 
-    def updateMusicSheet(self):
-        track = Track()
-        bar = Bar()
-        rest_count = 0
-        for note in self.melody_notes:
-            if note is not None:
-
-                # add rest before note
-                if rest_count > 0:
-                    bar.place_rest(32/rest_count)
-                rest_count = 0
-                bar.place_notes(note, 32)  # todo: future improvements is to set notes other than fuse
-            rest_count += 1
-            if bar.is_full():
-                track + bar
-                bar = Bar()  # create a new bar
+    def updateMusicSheet(self, track):
         lily_track = LilyPond.from_Track(track)
         LilyPond.to_png(lily_track, 'melody_sheet')
 
@@ -200,45 +187,43 @@ class AIHeroUI(App):
         self.num_compass = int(self.num_compass)
         self.pulses_on_compass = int(self.pulses_on_compass)
         self.chord_transition_time = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]
-        self.melody_notes = []
 
         print(self.fitness_function.w1, self.fitness_function.w2, self.fitness_function.w3, self.fitness_function.w4,
               self.fitness_function.w5, self.fitness_function.w6, self.fitness_function.w7)
 
         synth = AISynth()
-        initial_time = 2000  # delay antes de começar
 
         # inicializa classe de otimização
         scale = scales[self.scaleName]
         ai_hero = AIHero(self.central_note, self.bpm, self.num_compass, self.pulses_on_compass, scale,
                          self.chord_sequence, self.fitness_function)
 
+
+        # mudar depois
+        fluidsynth.init('./fluidsynth/sf2/FluidR3_GM.sf2')
+
         # retorna melodia (uma lista de notas(nota, velocidade), onde cada nota dura o tempo de uma fusa
+        track = Track()
+        first_execution = True  # indicates if it is the first time that the algorithm is being executed
+        initial_time = 0
         for i in range(0, self.num_compass):
-            total_duration = 60 / self.bpm * self.pulses_on_compass  # time of a beat(ms) * number of beats
             fuse = 60 / (self.bpm * 8)  # duration of 'fuse' note in seconds
+            t = time.time()
             compass_melody = ai_hero.generateMelodyArray(compassId=i)
-            if i == 3:
-                ai_hero.fitness_function.w7 = 100
-            if i == 4:
-                ai_hero.fitness_function.w7 = - 100
-            self.melody_notes = np.append(self.melody_notes, compass_melody)
+            elapsed_time = time.time() - t
+            print("Melody optimization {} took {}s".format(i, round(elapsed_time, 2)))
+
+            if first_execution:  # check if is first execution
+                initial_time = round(1000 * (elapsed_time + 1 + fuse * 64))
+                print("waiting {} for execution".format(round(initial_time/1000, 2)))
+                first_execution = False
+
+            for bar in compass_melody:
+                track.add_bar(bar)
+
             initial_time = synth.schedule_melody(
                 initial_time, fuse, self.chord_sequence[i], self.central_note, compass_melody)
-            self.updateMusicSheet()
-
-        # # linha de baixo
-        # bass_line = bass_lines['blues']
-        # ext_bass_line = bass_line
-        # num_lines = len(bass_line)
-        # # replica para o numero de compassos
-        # for ic in range(1, self.num_compass):
-        #     for ib in range(0, num_lines):
-        #         bass_time = bass_line[ib][1] + 32 * ic
-        #         ext_bass_line.append([bass_line[ib][0], bass_time])
-        # ib = 0
-
-        # Execução da musica
+        self.updateMusicSheet(track)
 
     def stopExecution(self, button):
         self.stop = True

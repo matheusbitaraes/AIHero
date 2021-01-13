@@ -43,6 +43,30 @@ chords = {
     '8-7': [],
 }
 
+chord_names = {
+    '1': 'C',
+    '2': 'D',
+    '3': 'E',
+    '4': 'F',
+    '5': 'G',
+    '6': 'A',
+    '7': 'B',
+    '1m': 'Cm',
+    '2m': 'Dm',
+    '3m': 'Em',
+    '4m': 'Fm',
+    '5m': 'Gm',
+    '6m': 'Am',
+    '7m': 'Bm',
+    '1-7': 'C7',
+    '2-7': 'D7',
+    '3-7': 'E7',
+    '4-7': 'F7',
+    '5-7': 'G7',
+    '6-7': 'A7',
+    '7-7': 'B7'
+}
+
 rhythmic_patterns = {  # define alguns padroes de onde as notas serão tocadas e onde haverão silencios
     '4': [  # 8 fusas entre tempos
         [-1, -1, -1, -1, -1, -1, -1, -1],
@@ -71,12 +95,19 @@ known_licks = {
     # eb-g() e-g() f-a() eb-g() e-g() c-g() g f-c d eb e-c
     'minor_blues_scale': [
         [7, -1, 10, -1, 7, -1, 12, -1],  # https://www.youtube.com/watch?v=obthFrPBN5A
-        [-1, -1, -1, -1, -1, 7, -1, -1,
-         15, -1, -1, 16, -1, -1, 21, -1,
-         15, 16, -1, -1, -1, -1, 12, -1,
-         7, 5, -1, -1, 2, -1, 3, -1],  # https://www.youtube.com/watch?v=obthFrPBN5A
-        [15, 16, 17, -1, -1, -1, -1, 24],  # https://www.youtube.com/watch?v=obthFrPBN5A
-        [7, 10, 7, 12, 7, 15, 7, 6],  # https://www.youtube.com/watch?v=obthFrPBN5A
+        [-1, -1, -1, -1, -1, 7, -1, 15,
+         16, -1, -1, -1, 12, -1, -1, -1],
+        [-1, -1, -1, 10, -1, 11, -1, 12],
+        [-1, -1, -1, 14, -1, 13, -1, 12],
+        [3, 4, 5, -1, -1, -1, -1, 12],  # https://www.youtube.com/watch?v=obthFrPBN5A
+        # [3, -1, 4, -1, 5, -1, -1, 12],  # https://www.youtube.com/watch?v=obthFrPBN5A
+        # [-1, -1, -1, 3, 4, 5, -1, 12]  # https://www.youtube.com/watch?v=obthFrPBN5A
+        # [-1, -1, -1, -1, -1, 7, -1, -1,
+        #  15, -1, -1, 16, -1, -1, 21, -1,
+        #  15, 16, -1, -1, -1, -1, 12, -1,
+        #  7, 5, -1, -1, 2, -1, 3, -1],  # https://www.youtube.com/watch?v=obthFrPBN5A
+        # [15, 16, 17, -1, -1, -1, -1, 24],  # https://www.youtube.com/watch?v=obthFrPBN5A
+        # [7, 10, 7, 12, 7, 15, 7, 6],  # https://www.youtube.com/watch?v=obthFrPBN5A
     ]
     # 'minor_blues_scale': [
     #     [0, 1, 2, -1, -1, -1, -1, 24], # https://www.youtube.com/watch?v=obthFrPBN5A
