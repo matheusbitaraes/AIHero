@@ -1,7 +1,5 @@
-import numpy as np
 from kivy.app import App
 from kivy.clock import Clock
-# from kivy.garden.graph import Graph, MeshLinePlot
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
@@ -34,14 +32,8 @@ class AIHeroUI(App):
         self.chord_sequence = ['1-7', '4-7', '1-7', '1-7', '4-7', '4-7', '1-7', '1-7', '5-7', '4-7', '1-7', '5-7']
         self.chord_transition_time = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]
         self.melody_notes = Track()
-        # self.plot = MeshLinePlot(color=[1, 0, 0, 1])
         self.fitness_function = Fitness(0, 0, 0, 0, 0, 0, 0, 0)
         self.stop = False
-        # self.graph = Graph(xlabel='tempo', ylabel='Notas', x_ticks_minor=5,
-        #                    x_ticks_major=25, y_ticks_major=1,
-        #                    y_grid_label=True, x_grid_label=True, padding=5,
-        #                    x_grid=True, y_grid=True, xmin=0, xmax=self.num_compass * self.pulses_on_compass * 8,
-        #                    ymin=self.central_note - 20, ymax=self.central_note + 20)
 
     def build(self):
         box = BoxLayout(orientation='horizontal', spacing=100)
@@ -67,33 +59,13 @@ class AIHeroUI(App):
         box_parameter_setup.add_widget(box_parameter_fitness)
         box_parameter_setup.add_widget(box_parameter)
 
-        # defines graphic exhibition part
-        box_output = BoxLayout(orientation='vertical')
+        # defines musical sheet exhibition part
         image = Image(source='melody_sheet.png', allow_stretch=True, keep_ratio=False)
-        # box_output.add_widget(image)
         Clock.schedule_interval(lambda dt: image.reload(), 0.25)
-        # self.graph.add_plot(self.plot)
-        # Clock.schedule_interval(self.updatePlot, 1)
-        # box_output.add_widget(self.graph)
 
         box.add_widget(box_parameter_setup, 1)
-        # box.add_widget(box_output, 0)
         box.add_widget(image, 0)
         return box
-
-    # def updatePlot(self, dt):
-    #     i = 0
-    #     points = []
-    #     self.graph.xmax = self.pulses_on_compass * int(self.num_compass) * 8
-    #     for note in self.melody_notes:
-    #         if note.note is not None:
-    #             points.append([i, note.note])
-    #         i += 1
-    #     self.plot.points = points
-
-    def updateMusicSheet(self, track):
-        lily_track = LilyPond.from_Track(track)
-        LilyPond.to_png(lily_track, 'melody_sheet')
 
     def buildSliderInput(self, name, value, min=-100, max=100):
         def on_value_change(instance, v):
@@ -223,7 +195,9 @@ class AIHeroUI(App):
 
             initial_time = synth.schedule_melody(
                 initial_time, fuse, self.chord_sequence[i], self.central_note, compass_melody)
-        self.updateMusicSheet(track)
+
+        # save music sheet into file
+        LilyPond.to_png(LilyPond.from_Track(track), 'melody_sheet')
 
     def stopExecution(self, button):
         self.stop = True
