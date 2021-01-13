@@ -15,45 +15,50 @@ class AIHero:
         self.bpm = int(bpm)
         self.num_compass = int(num_compass)
         self.pulses_on_compass = int(notes_on_compass)
-        self.scale = scale  # escala com 1 oitava acima e 1 abaixo
+        self.scale = scale  # scale with 1 octave above and 1 octave below
         self.chord_sequence = chord_sequence
         self.fuse = 8
         self.max_generations = 150
         self.pop_size = 100
-        self.k = 0.30  # porcentagem de individuos que participam do torneio
-        self.pc = 0.5  # probabilidade de crossover
-        self.pm = 0.05  # probabilidade de mutação de um filho
-        self.pnm = 0.02  # probabilidade de mutação de uma nota, quando o filho por mutadolugar
-        self.chord_note_prob = 0.05  # probabilidade de uma nota da melodia (população inicial) ser uma nota pertencente ao acorde
-        self.next_note_range = 8  # distancia máxima em semitons entre duas notas (população inicial)
+        self.k = 0.30  # percentage of individuals that will participate of tournament
+        self.pc = 0.5  # crossover probability
+        self.pm = 0.05  # child mutation probability
+        self.pnm = 0.02  # probability of changing a note when a child is going on mutation
+        self.chord_note_prob = 0.05  # (initial population) probability of a note to be from the chord
+        self.next_note_range = 8  # (initial population) max distances (semitones) between two notes in sequence
         self.fitness_function = fitness_function
 
-    def generateMelodyArray(self, compassId=None):  # retorna um array com notas por fusa, resultado da otimização
+    def generateMelodyArray(self, compassId=None):
+        # returns optimization results in a melody array, where each value corresponds to a fuse
         notes = []
         note_track = Track()
         note_bar = Bar()
         rest_count = 0
 
         if compassId is None:
-            # itera nos compassos
             for i in range(0, self.num_compass):
                 compass_chord = self.chord_sequence[i]  # acorde do inicio do compasso
 
-                # pega array resultado da otimização
+                # Optimization result
                 note_array = self.geneticAlgorithm(compass_chord)
 
-                # transforma em notas
+                # transform in notes
                 for j in range(0, len(note_array)):
                     if note_array[j] > -1:
+                        if rest_count > 0:  # add rest before note
+                            note_bar.place_rest(32/rest_count)
+                        rest_count = 0
                         note = int(self.central_note - 12 + note_array[j])
-                    notes.append(Note().from_int(note))
-                else:
-                    notes.append(Note().empty())
+                        note_bar.place_notes(Note().from_int(note), 32)  # todo: future improvements is to set notes other than fuse
+                    else:
+                        rest_count += 1
+                    if note_bar.is_full():
+                        note_track + note_bar
+                        note_bar = Bar()  # create a new bar
         else:
-            compass_chord = self.chord_sequence[compassId]  # acorde do inicio do compasso
-            # note_track.from_chords([chord_names[compass_chord]], 1)
+            compass_chord = self.chord_sequence[compassId]
 
-            # pega array resultado da otimização
+            # optimization result
             note_array = self.geneticAlgorithm(compass_chord)
 
             # transform in notes
@@ -75,14 +80,15 @@ class AIHero:
     def geneticAlgorithm(self, compass_chord):
         total_notes = self.pulses_on_compass * self.fuse
         fitness = np.zeros(self.pop_size)
+        best_individual = None
 
-        # inicia população
+        # initiates population
         pop = self.generatePopulation(compass_chord)
 
-        # loop geracional
+        # generation loop
         for t in range(0, self.max_generations):
 
-            # cálculo do fitness
+            # fitness calculation
             for j in range(0, self.pop_size):
                 fitness[j] = self.fitness_function.eval(pop[j], chords[compass_chord])
 
@@ -93,13 +99,13 @@ class AIHero:
             idx = 0
             new_pop = pop * 0
             while idx < self.pop_size:
-                # seleção: torneio
+                # selection: tournament
                 parents = self.tournament(pop, fitness, 2)
 
-                # cruzamento: 1 ponto de corte
+                # crossover: one point
                 children = self.crossover(parents, total_notes)
 
-                # mutação: mudança de nota
+                # mutation: note flip
                 for idm in range(0, len(children)):
                     if random() <= self.pm:
                         children[idm] = self.mutate(children[idm])
@@ -110,16 +116,13 @@ class AIHero:
 
             pop = new_pop
 
-        # print("best fitness:", best_fitness)
-        # print("best fitness:", best_individual)
         return best_individual
 
     def generatePopulation(self, compass_chord):
         total_notes = self.pulses_on_compass * self.fuse
         octave1 = [x + 12 for x in self.scale][1:]
         octave2 = [x + 12 for x in octave1][1:]
-        expanded_scale = np.append(self.scale, np.append(octave1,
-                                                         octave2))  # adicionando -1, que seria "sem nota" e duas oitavas a mais
+        expanded_scale = np.append(self.scale, np.append(octave1, octave2))
 
         pop = np.zeros([self.pop_size, total_notes])
         for j in range(0, self.pop_size):
@@ -131,12 +134,6 @@ class AIHero:
 
             for idn in range(0, len(notes_of_scale)):
                 reduced_scale = expanded_scale[abs(expanded_scale - notes_of_scale[idn - 1]) < self.next_note_range]
-                # reduced_chord_notes = chord_notes[abs(chord_notes - notes_of_scale[idn - 1]) < self.next_note_range]
-                # if random() <= self.chord_note_prob and len(
-                #         reduced_chord_notes) > 0:  # coloca alguma nota pertencente ao acorde para ser tocada
-                #     notes_of_scale[idn] = reduced_chord_notes[np.random.randint(len(reduced_chord_notes))]
-                # elif len(reduced_scale) > 0:
-                #     notes_of_scale[idn] = reduced_scale[np.random.randint(len(reduced_scale))]
 
                 # pega nota aleatória dentro da escala
                 notes_of_scale[idn] = reduced_scale[np.random.randint(len(reduced_scale))]
@@ -148,7 +145,7 @@ class AIHero:
                 a = idr * self.fuse
                 b = (idr + 1) * self.fuse
                 rhythmic_pattern[a:b] = rp[
-                    round(randrange(len(rp)))]  # escolhe um padrão ritmico aleatorio da base de padrões
+                    round(randrange(len(rp)))]  # chooses an aleatory  rithmic pattern from pattern database
 
             notes_of_scale[rhythmic_pattern < 0] = -1
             pop[j] = notes_of_scale
@@ -157,12 +154,12 @@ class AIHero:
 
     def tournament(self, pop, fitness, num_parents):
         n_participants = round(len(pop) * self.k)
-        # fitness_array = np.zeros([2, n_participants])
-        # Pega os k% primeiros individuos, selecionados aleatoriamente
+
+        # get first k% individuals
         participants_idx = np.random.permutation(len(pop))[0:n_participants]
         participants = pop[participants_idx]
 
-        # pega os num_parents participantes com maior fitness
+        # get num_parents participants with higher fitness
         participants_fit = fitness[participants_idx]
         idx = np.argsort(-1 * participants_fit)[:num_parents]
         parents = participants[idx]
@@ -171,7 +168,7 @@ class AIHero:
 
     def crossover(self, parents, total_notes):
         if random() <= self.pc:
-            cut_point = randrange(self.pulses_on_compass) * self.fuse  # o ponto de corte é sempre em um pulso.
+            cut_point = randrange(self.pulses_on_compass) * self.fuse  # the cutting point happens always in a pulse
             child1 = np.append(parents[0][:cut_point], parents[1][cut_point:])
             child2 = np.append(parents[1][:cut_point], parents[0][cut_point:])
             children = np.array([child1, child2])
@@ -181,39 +178,7 @@ class AIHero:
         return children
 
     def mutate(self, child):
-        # mutação construtiva. Pega duas notas em sequencia e coloca uma nota intermediária entre elas
-        # note1 = None
-        # note2 = None
-        # id1 = None
-        # id2 = None
-        # for i in range(0, len(child)):
-        #     if child[i] != -1:
-        #         if note1 is None:
-        #             note1 = child[i]
-        #             id1 = i
-        #         else:
-        #             note2 = child[i]
-        #             id2 = i
-        #             break
-        # if id1 is not None and id2 is not None and note1 is not None and note2 is not None:
-        #     id3 = id1 + randrange(id2-id1)
-        #     if note1 > note2:
-        #         note3 = note1 - randrange(note1 - note2)
-        #         child[id3] = note3
-        #     elif note1 < note2:
-        #         note3 = note1 + randrange(note2 - note1)
-        #         child[id3] = note3
         for i in range(0, len(child)):
             if child[i] != -1 and random() < self.pnm:
                 child[i] = child[i] - randrange(8) + 4
         return child
-
-# gerador melódico
-# estratégia baseada na ordem das notas
-# critério de parada: quando ocorrer takeover
-# função de fitness: garayacevedo2005.pdf
-# soma pesos com funções de fitness que são:
-# porcentagem de notas no mesmo key do acorde (100)
-# Melodia começa numa nota do acorde (50)
-# Porcentagem de intervalos menor que uma terça 100 (??)
-# numero de repetições maior que 2 de uma nota (-25)

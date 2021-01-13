@@ -1,5 +1,3 @@
-import time
-
 import fluidsynth
 import numpy as np
 
@@ -27,32 +25,6 @@ class AISynth:
         self.synthID = self.seq.register_fluidsynth(self.fs)
         self.synthIDMetronome = self.seq.register_fluidsynth(self.fs_metronome)
         self.synthIDChord = self.seq.register_fluidsynth(self.fs_chord)
-
-    def execute_melody_and_harmony(self, total_duration, fuse, chord, central_note,
-                                   melody, metronome=True):
-        notes_window = np.arange(0, total_duration, fuse).tolist()
-        time.sleep(8 * fuse)
-        for i in range(0, len(notes_window)):
-            if melody[i] and melody[i].note and melody[i].note != -1:
-                self.fs.noteon(0, melody[i].note, melody[i].velocity)
-
-            # keep track of the number of tempos
-            tempo = i / 8
-
-            # check for chord play
-            if tempo == 0:
-                # chord_name = chord_sequence[chord_transition_time.index(tempo)]
-                for chord_note in chords[chord]:
-                    self.fs.noteon(0, central_note + chord_note, 80)
-
-            # checa linha de baixo
-            # if bass_line[ib][1] == i:
-            #     ib = ib + 1
-            #     self.fs.noteon(0, self.central_note + chords[chord_name][0] + bass_line[ib][0] - 24, 70)
-
-            if i % 8 == 0 and metronome is True:
-                self.fs.noteon(0, central_note - 24 + chords[chord][0], 60)
-            time.sleep(fuse)
 
     def schedule_metronome(self, initial_time, duration):
         for t in duration*np.arange(4)/4:
