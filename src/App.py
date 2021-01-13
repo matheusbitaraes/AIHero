@@ -9,7 +9,6 @@ from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 from mingus.containers import Bar, Track
 import mingus.extra.lilypond as LilyPond
-from mingus.midi import fluidsynth
 import time
 
 from src.AIHero import AIHero
@@ -18,7 +17,7 @@ from src.Fitness import Fitness
 from src.resources import *
 
 MENU_TITLES = ['Notes of chord', 'Notes on tempo', 'Notes interval', 'Notes repetition', 'Notes Pitch', 'Note variety',
-               'Note sequency']
+               'Note sequency', 'muscular memory']
 
 
 class AIHeroUI(App):
@@ -56,6 +55,7 @@ class AIHeroUI(App):
         box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[4], self.fitness_function.w5, -12, 12))
         box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[5], self.fitness_function.w6))
         box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[6], self.fitness_function.w7))
+        box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[7], self.fitness_function.w8))
         box_parameter_setup.add_widget(box_parameter_fitness)
         box_parameter_setup.add_widget(box_parameter)
 
@@ -67,7 +67,7 @@ class AIHeroUI(App):
         box.add_widget(image, 0)
         return box
 
-    def buildSliderInput(self, name, value, min=-100, max=100):
+    def buildSliderInput(self, name, value, _min=-100, _max=100):
         def on_value_change(instance, v):
             if name == MENU_TITLES[0]:
                 self.fitness_function.w1 = v
@@ -83,6 +83,8 @@ class AIHeroUI(App):
                 self.fitness_function.w6 = v
             if name == MENU_TITLES[6]:
                 self.fitness_function.w7 = v
+            if name == MENU_TITLES[7]:
+                self.fitness_function.w8 = v
             label.text = name + " (" + str(round(v)) + ")"
 
         box = BoxLayout()
@@ -90,7 +92,7 @@ class AIHeroUI(App):
         box.height = 60
         label_txt = name + " (" + str(value) + ")"
         label = Label(text=label_txt, size_hint=(0.4, 1))
-        variable = Slider(min=min, max=max, value=value, size_hint=(0.6, 1))
+        variable = Slider(min=_min, max=_max, value=value, size_hint=(0.6, 1))
         variable.bind(value=on_value_change)
         box.add_widget(label)
         box.add_widget(variable)
@@ -130,7 +132,6 @@ class AIHeroUI(App):
         return box
 
     def buildDropdownInput(self, name, list):
-
         def setValue(x):
             self.scaleName = x
 
@@ -151,8 +152,6 @@ class AIHeroUI(App):
 
         return box
 
-    chord_name = None
-
     def startExecution(self, button):
         self.central_note = int(self.central_note)
         self.bpm = int(self.bpm)
@@ -160,21 +159,13 @@ class AIHeroUI(App):
         self.pulses_on_compass = int(self.pulses_on_compass)
         self.chord_transition_time = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]
 
-        print(self.fitness_function.w1, self.fitness_function.w2, self.fitness_function.w3, self.fitness_function.w4,
-              self.fitness_function.w5, self.fitness_function.w6, self.fitness_function.w7)
-
-        synth = AISynth()
-
-        # inicializa classe de otimização
+        # Optimization class initialization
         scale = scales[self.scaleName]
         ai_hero = AIHero(self.central_note, self.bpm, self.num_compass, self.pulses_on_compass, scale,
                          self.chord_sequence, self.fitness_function)
 
-
-        # mudar depois
-        fluidsynth.init('./fluidsynth/sf2/FluidR3_GM.sf2')
-
-        # retorna melodia (uma lista de notas(nota, velocidade), onde cada nota dura o tempo de uma fusa
+        # returns a lista of notes where each notes returns a fuse
+        synth = AISynth()
         track = Track()
         first_execution = True  # indicates if it is the first time that the algorithm is being executed
         initial_time = 0
