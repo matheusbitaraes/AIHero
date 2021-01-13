@@ -1,7 +1,4 @@
-import math
 import numpy as np
-# import cv2
-# from cv2 import matchTemplate as cv2m
 
 from src.resources import *
 
@@ -27,33 +24,33 @@ class Fitness:
         f6 = 0
         f7 = 0
         f8 = 0
-        if self.w1 != 0:
+        if self.w1 != 0:  # percentage of notes in the same key of chord (0-1)
             f1 = self.notesOnSameChordKey(note_sequence,
-                                          chord_notes)  # porcentagem de notas no mesmo key do acorde (0-1)
-        if self.w2 != 0:
-            f2 = self.notesOnTempo(note_sequence)  # porcentagem de notas nos tempos ou contra tempos (0-1)
+                                          chord_notes)
+        if self.w2 != 0:  # percetage of notes in beat of off beat (0-1)
+            f2 = self.notesOnTempo(note_sequence)
 
-        if self.w3 != 0:
+        if self.w3 != 0:  # percentage of intervals (the more intervals, the higher is the grade) (0-1)
             f3 = self.intervalsEvaluation(
-                note_sequence)  # Porcentagem de intervalos. quanto maior, mais intervalos. 100 (0-1)
+                note_sequence)
 
-        if self.w4 != 0:
-            f4 = self.evalNoteRepetitions(note_sequence)  # numero de repetições maior que 2 de uma nota (0,1)
+        if self.w4 != 0:  # number of repetitions is higher than 2 (0,1)
+            f4 = self.evalNoteRepetitions(note_sequence)
 
-        if self.w5 != 0:
+        if self.w5 != 0:  # check if pitch is according to a reference note
             f5 = 100 * self.evalPitch(note_sequence,
-                                      self.w5 + 12)  # função para escolher solos mais graves ou agudos (0-100)
-        if self.w6 != 0:
+                                      self.w5 + 12)
+        if self.w6 != 0:  # check note variety (0-1)
             f6 = self.noteVarietyEvaluation(note_sequence)  # variedade de notas (0-1)
 
-        if self.w7 != 0:
+        if self.w7 != 0:  # percentage of notes in sequency (asc or desc) (0-1)
             f7 = self.notesInSequenceEvaluation(
-                note_sequence)  # porcentagem de notas em sequencia (ascendente ou descendente, o que for maior) (0-1)
+                note_sequence)
 
-        if self.w8 != 0:
+        if self.w8 != 0:  # measure the proximity of the sequence in relation to known musical licks. 1: note
+            # seguence is totally equal musical licks. 0: note sequence has nothing to do with musical licks(0-1)
             f8 = self.knownLicksProximity(
-                note_sequence)  # measure the proximity of the sequence in relation to known musical licks. 1: note
-        # seguence is totally equal musical licks. 0: note sequence has nothing to do with musical licks(0-1)
+                note_sequence)
 
         fitness = self.w1 * f1 + self.w2 * f2 + self.w3 * f3 + self.w4 * f4 + f5 + self.w6 * f6 + self.w7 * f7 + self.w8 * f8
 
@@ -80,10 +77,6 @@ class Fitness:
         intervals = len(note_sequence[note_sequence == -1])
         perc = intervals / len(note_sequence)
         return perc
-        # if 0.1 < perc < 0.5:
-        #     return 1
-        # else:
-        #     return 0
 
     def evalNoteRepetitions(self, note_sequence):
         notes = note_sequence[note_sequence != -1]
@@ -136,7 +129,7 @@ class Fitness:
                     n += 1
 
         if len(notes) > 0:
-            return n / 8  # 8 is the highest possible number of notes on tempo/contra tempo
+            return n / 8  # 8 is the highest possible number of notes on beat/off beat
         else:
             return 0
 
@@ -156,7 +149,7 @@ class Fitness:
             if self.is_slice_in_list(lick_dynamic, notes_dynamic):
                 global_similarity += 0.5
 
-        # transform know lick to array
+        # transform known lick to array
         return global_similarity
 
     def is_slice_in_list(self, s, l):  # check if s is slice of l
@@ -164,11 +157,7 @@ class Fitness:
         len_s = len(s)
         return any((s == l[i:len_s + i]).all() for i in range(len(l) - len_s + 1))
 
-        # for i in range(len(l) - len_s + 1):
-        #     if (s == l[i:len_s + i]).all():
-        #         return True
-        # verd = any((s == l[i:len_s + i]).all() for i in range(len(l) - len_s+1))
-
+    # backup
     # def getSequenceSimilarity(self, arr, seq):
     #     """ Find sequence in an array using cv2.
     #      """
@@ -178,32 +167,3 @@ class Fitness:
     #     # the entire length of the input array and get scores.
     #     S = cv2m(np.array(arr).astype('uint8'), np.array(seq).astype('uint8'), cv2.TM_CCOEFF_NORMED)
     #     return np.max(S)
-
-    # def levenshtein(self, a, b):
-    #     # This is a straightforward implementation of a well-known algorithm, and thus
-    #     # probably shouldn't be covered by copyright to begin with. But in case it is,
-    #     # the author (Magnus Lie Hetland) has, to the extent possible under law,
-    #     # dedicated all copyright and related and neighboring rights to this software
-    #     # to the public domain worldwide, by distributing it under the CC0 license,
-    #     # version 1.0. This software is distributed without any warranty. For more
-    #     # information, see <http://creativecommons.org/publicdomain/zero/1.0>
-    #     # source: https://folk.idi.ntnu.no/mlh/hetland_org/coding/python/levenshtein.py
-    #
-    #     "Calculates the Levenshtein distance between a and b."
-    #     n, m = len(a), len(b)
-    #     if n > m:
-    #         # Make sure n <= m, to use O(min(n,m)) space
-    #         a, b = b, a
-    #         n, m = m, n
-    #
-    #     current = range(n + 1)
-    #     for i in range(1, m + 1):
-    #         previous, current = current, [i] + [0] * n
-    #         for j in range(1, n + 1):
-    #             add, delete = previous[j] + 1, current[j - 1] + 1
-    #             change = previous[j - 1]
-    #             if a[j - 1] != b[i - 1]:
-    #                 change = change + 1
-    #             current[j] = min(add, delete, change)
-    #
-    #     return current[n]
