@@ -2,9 +2,9 @@ from random import random, randrange
 
 import numpy as np
 
-from Fitness import Fitness
-from Note import Note
-from resources import *
+from src.Fitness import Fitness
+from mingus.containers.note import Note
+from src.resources import *
 
 
 class AIHero:
@@ -47,10 +47,9 @@ class AIHero:
                         # plt.scatter(p, note, color='b')
                         # plot_notes.append(note)
                         # plot_interval.append(p)
-                    else:
-                        note = None
-
-                    notes.append(Note(note, 80))
+                    notes.append(Note().from_int(note))
+                else:
+                    notes.append(Note().empty())
 
                 # plt.plot(plot_interval, plot_notes, color='b')
                 # plt.pause(0.005)
@@ -69,10 +68,9 @@ class AIHero:
                     # plt.scatter(p, note, color='b')
                     # plot_notes.append(note)
                     # plot_interval.append(p)
+                    notes.append(Note().from_int(note))
                 else:
-                    note = None
-
-                notes.append(Note(note, 80))
+                    notes.append(Note().empty())
 
             # plt.plot(plot_interval, plot_notes, color='b')
             # plt.pause(0.005)

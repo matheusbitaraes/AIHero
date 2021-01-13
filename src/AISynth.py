@@ -3,14 +3,14 @@ import time
 import fluidsynth
 import numpy as np
 
-from resources import *
+from src.resources import *
 
 
 class AISynth:
-    def __init__(self):
+    def __init__(self, path=r'./fluidsynth/sf2/FluidR3_GM.sf2'):
         self.fs = fluidsynth.Synth()
         self.fs.start(driver='coreaudio')  # use DirectSound driver
-        sfid = self.fs.sfload(r'./fluidsynth/sf2/FluidR3_GM.sf2')  # replace path as needed
+        sfid = self.fs.sfload(path)  # replace path as needed
         self.fs.program_select(0, sfid, 0, 0)
         self.seq = fluidsynth.Sequencer()
         self.synthID = self.seq.register_fluidsynth(self.fs)
@@ -46,8 +46,8 @@ class AISynth:
         current_time = initial_time
         i = 0
         for note in melody:
-            if note and note.note and note.note != -1:
-                self.seq.note_on(time=current_time, channel=0, key=note.note, velocity=note.velocity, dest=self.synthID)
+            if note and int(note) and int(note) != -1:
+                self.seq.note_on(time=current_time, channel=0, key=int(note), velocity=note.velocity, dest=self.synthID)
 
             # keep track of the number of tempos
             tempo = i / 8

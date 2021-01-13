@@ -1,18 +1,24 @@
 import numpy as np
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.garden.graph import Graph, MeshLinePlot
+# from kivy.garden.graph import Graph, MeshLinePlot
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
+from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
+from mingus.containers import Bar, Track
+import mingus.extra.lilypond as LilyPond
 
-from AIHero import AIHero
-from AISynth import AISynth
-from Fitness import Fitness
-from resources import *
+from src.AIHero import AIHero
+from src.AISynth import AISynth
+from src.Fitness import Fitness
+from src.resources import *
+
+MENU_TITLES = ['Notes of chord', 'Notes on tempo', 'Notes interval', 'Notes repetition', 'Notes Pitch', 'Note variety',
+               'Note sequency']
 
 
 class AIHeroUI(App):
@@ -26,24 +32,22 @@ class AIHeroUI(App):
         self.chord_sequence = ['1-7', '4-7', '1-7', '1-7', '4-7', '4-7', '1-7', '1-7', '5-7', '4-7', '1-7', '5-7']
         self.chord_transition_time = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]
         self.melody_notes = []
-        self.plot = MeshLinePlot(color=[1, 0, 0, 1])
+        # self.plot = MeshLinePlot(color=[1, 0, 0, 1])
         self.fitness_function = Fitness(0, 0, 0, 0, 0, 0, 0, 0)
         self.stop = False
-        self.graph = Graph(xlabel='tempo', ylabel='Notas', x_ticks_minor=5,
-                           x_ticks_major=25, y_ticks_major=1,
-                           y_grid_label=True, x_grid_label=True, padding=5,
-                           x_grid=True, y_grid=True, xmin=0, xmax=self.num_compass * self.pulses_on_compass * 8,
-                           ymin=self.central_note - 20, ymax=self.central_note + 20)
+        # self.graph = Graph(xlabel='tempo', ylabel='Notas', x_ticks_minor=5,
+        #                    x_ticks_major=25, y_ticks_major=1,
+        #                    y_grid_label=True, x_grid_label=True, padding=5,
+        #                    x_grid=True, y_grid=True, xmin=0, xmax=self.num_compass * self.pulses_on_compass * 8,
+        #                    ymin=self.central_note - 20, ymax=self.central_note + 20)
 
     def build(self):
-        box = BoxLayout(orientation='vertical', spacing=100)
+        box = BoxLayout(orientation='horizontal', spacing=100)
 
-        # configuração de parâmetros
-        box_parameter_setup = BoxLayout(orientation='horizontal', spacing=10)
+        # parameter configuration
+        box_parameter_setup = BoxLayout(orientation='vertical', spacing=10)
         box_parameter = BoxLayout(orientation='vertical', spacing=10)
         box_parameter_fitness = BoxLayout(orientation='vertical', spacing=10)
-        # title = Label(text='Definição de parametros do problema', font_size=30)
-        # box_parameter_setup.add_widget(title, 10)
         box_parameter.add_widget((self.buildButtons()))
         box_parameter.add_widget(self.buildTextInput('central_note', self.central_note), 1)
         box_parameter.add_widget(self.buildTextInput('bpm', self.bpm), 1)
@@ -51,51 +55,74 @@ class AIHeroUI(App):
         box_parameter.add_widget(self.buildTextInput('pulses_on_compass', self.pulses_on_compass), 1)
         box_parameter.add_widget(self.buildDropdownInput('scale', scales), 1)
         box_parameter.add_widget(self.buildTextInput('chord_sequence', self.chord_sequence), 1)
-        box_parameter_fitness.add_widget(self.buildSliderInput('Notas nos acordes', self.fitness_function.w1))
-        box_parameter_fitness.add_widget(self.buildSliderInput('Notas no tempo', self.fitness_function.w8))
-        box_parameter_fitness.add_widget(self.buildSliderInput('Intervalos entre notas', self.fitness_function.w3))
-        box_parameter_fitness.add_widget(self.buildSliderInput('Numero de repetições', self.fitness_function.w4))
-        box_parameter_fitness.add_widget(self.buildSliderInput('Pitch', self.fitness_function.w5, -12, 12))
-        box_parameter_fitness.add_widget(self.buildSliderInput('Variedade de notas', self.fitness_function.w6))
-        box_parameter_fitness.add_widget(self.buildSliderInput('Notas em sequencia', self.fitness_function.w7))
-        box_parameter_setup.add_widget(box_parameter)
+        box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[0], self.fitness_function.w1))
+        box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[1], self.fitness_function.w2))
+        box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[2], self.fitness_function.w3))
+        box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[3], self.fitness_function.w4))
+        box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[4], self.fitness_function.w5, -12, 12))
+        box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[5], self.fitness_function.w6))
+        box_parameter_fitness.add_widget(self.buildSliderInput(MENU_TITLES[6], self.fitness_function.w7))
         box_parameter_setup.add_widget(box_parameter_fitness)
+        box_parameter_setup.add_widget(box_parameter)
 
-        # define parte de exibição de gráficos e definiçao de objetivos
+        # defines graphic exhibition part
         box_output = BoxLayout(orientation='vertical')
-        self.graph.add_plot(self.plot)
-        Clock.schedule_interval(self.updatePlot, 1)
-        box_output.add_widget(self.graph)
+        image = Image(source='melody_sheet.png', allow_stretch=True, keep_ratio=False)
+        # box_output.add_widget(image)
+        Clock.schedule_interval(lambda dt: image.reload(), 0.25)
+        # self.graph.add_plot(self.plot)
+        # Clock.schedule_interval(self.updatePlot, 1)
+        # box_output.add_widget(self.graph)
 
         box.add_widget(box_parameter_setup, 1)
-        box.add_widget(box_output, 0)
+        # box.add_widget(box_output, 0)
+        box.add_widget(image, 0)
         return box
 
-    def updatePlot(self, dt):
-        i = 0
-        points = []
-        self.graph.xmax = self.pulses_on_compass * int(self.num_compass) * 8  # len(self.melody_notes) #
+    # def updatePlot(self, dt):
+    #     i = 0
+    #     points = []
+    #     self.graph.xmax = self.pulses_on_compass * int(self.num_compass) * 8
+    #     for note in self.melody_notes:
+    #         if note.note is not None:
+    #             points.append([i, note.note])
+    #         i += 1
+    #     self.plot.points = points
+
+    def updateMusicSheet(self):
+        track = Track()
+        bar = Bar()
+        rest_count = 0
         for note in self.melody_notes:
-            if note.note is not None:
-                points.append([i, note.note])
-            i += 1
-        self.plot.points = points  # [(i, self.melody_notes[i].note) for i in range(0, len(self.melody_notes))]
+            if note is not None:
+
+                # add rest before note
+                if rest_count > 0:
+                    bar.place_rest(32/rest_count)
+                rest_count = 0
+                bar.place_notes(note, 32)  # todo: future improvements is to set notes other than fuse
+            rest_count += 1
+            if bar.is_full():
+                track + bar
+                bar = Bar()  # create a new bar
+        lily_track = LilyPond.from_Track(track)
+        LilyPond.to_png(lily_track, 'melody_sheet')
 
     def buildSliderInput(self, name, value, min=-100, max=100):
         def on_value_change(instance, v):
-            if name == 'Notas nos acordes':
+            if name == MENU_TITLES[0]:
                 self.fitness_function.w1 = v
-            if name == 'Notas no tempo ou contra tempo':
-                self.fitness_function.w8 = v
-            if name == 'Intervalos entre notas':
+            if name == MENU_TITLES[1]:
+                self.fitness_function.w2 = v
+            if name == MENU_TITLES[2]:
                 self.fitness_function.w3 = v
-            if name == 'Numero de repetições':
+            if name == MENU_TITLES[3]:
                 self.fitness_function.w4 = v
-            if name == 'Pitch':
+            if name == MENU_TITLES[4]:
                 self.fitness_function.w5 = v
-            if name == 'Variedade de notas':
+            if name == MENU_TITLES[5]:
                 self.fitness_function.w6 = v
-            if name == 'Notas em sequencia':
+            if name == MENU_TITLES[6]:
                 self.fitness_function.w7 = v
             label.text = name + " (" + str(round(v)) + ")"
 
@@ -111,8 +138,8 @@ class AIHeroUI(App):
         return box
 
     def buildButtons(self):
-        start_button = Button(text="Tocar", on_release=self.startExecution, size_hint=(1, 1))
-        stop_button = Button(text="Parar", on_release=self.stopExecution, size_hint=(1, 1))
+        start_button = Button(text="Play", on_release=self.startExecution, size_hint=(1, 1))
+        stop_button = Button(text="Stop", on_release=self.stopExecution, size_hint=(1, 1))
         box = BoxLayout()
         box.size_hint_y = None
         box.height = 60
@@ -181,26 +208,6 @@ class AIHeroUI(App):
         synth = AISynth()
         initial_time = 2000  # delay antes de começar
 
-        # while self.stop is False:
-        #     # inicializa classe de otimização
-        #     scale = scales[self.scaleName]
-        #     ai_hero = AIHero(self.central_note, self.bpm, self.num_compass, self.pulses_on_compass, scale,
-        #                      self.chord_sequence, self.fitness_function)
-        #
-        #     # retorna melodia (uma lista de notas(nota, velocidade), onde cada nota dura o tempo de uma fusa
-        #     for i in range(0, self.num_compass):
-        #         total_duration = 60 / self.bpm * self.pulses_on_compass  # time of a beat(ms) * number of beats
-        #         fuse = 60 / (self.bpm * 8)  # duration of 'fuse' note in seconds
-        #         compass_melody = ai_hero.generateMelodyArray(compassId=i)
-        #         if i == 3:
-        #             ai_hero.fitness_function.w7 = 100
-        #         if i == 4:
-        #             ai_hero.fitness_function.w7 = - 100
-        #         self.melody_notes = compass_melody
-        #         initial_time = synth.schedule_melody(
-        #             initial_time, fuse, self.chord_sequence[i], self.central_note, compass_melody)
-        #     time.sleep(1)
-
         # inicializa classe de otimização
         scale = scales[self.scaleName]
         ai_hero = AIHero(self.central_note, self.bpm, self.num_compass, self.pulses_on_compass, scale,
@@ -218,6 +225,7 @@ class AIHeroUI(App):
             self.melody_notes = np.append(self.melody_notes, compass_melody)
             initial_time = synth.schedule_melody(
                 initial_time, fuse, self.chord_sequence[i], self.central_note, compass_melody)
+            self.updateMusicSheet()
 
         # # linha de baixo
         # bass_line = bass_lines['blues']
