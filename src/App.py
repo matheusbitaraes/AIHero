@@ -172,7 +172,7 @@ class AIHeroUI(App):
         for i in range(0, self.num_compass):
             fuse = 60 / (self.bpm * 8)  # duration of 'fuse' note in seconds
             t = time.time()
-            compass_melody = ai_hero.generateMelodyArray(compassId=i)
+            compass_melody = ai_hero.generateMelodyArray(compassId=i)  # todo: thread this
             elapsed_time = time.time() - t
             print("Melody optimization {} took {}s".format(i, round(elapsed_time, 2)))
 
