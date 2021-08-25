@@ -1,17 +1,28 @@
 # AIHero
 AI for music improvisation
 
+TODO: insert image of the flow here
 
-agortimo genético "live" com varios objetivos:
-jazz
-dinamica de tempo de notas
-notas por tempo
-notas dentro da escala
+TODO:
+- Criar linhas de baixo com mingus.
+- Migrar acordes para mingus.
+- fazer algoritmo genético convergir melhor.
+- fazer os intervalos virarem duraçoes aleatorias das notas! tipo, se tem só 1 nota no tempo, ela pode assumir a duraçao da fusa ate a seminima.
+- Desenhar arquitetura.
+- Fazer o algoritmo se comportar de uma forma "ao vivo", onde os parametros vão mudando e as melodias também.
 
-requisito:
-terminar nas notas certas
+Para o fitness, a ideia de agora é colocar uma rede neural para avaliar a proximidade da melodia gerada com uma melodia real.
+para a inicialização da população, pode ser usada uma outra rede neural para gerar.
+e aí também terão os objetivos inseridos pelo usuario (variedade de notas, quantidade de notas, pitch...e é isso que o algoritmo genético vai tentar atacar)
 
-tarefas:
-Encontrar uma forma de fazer a AI tocar audios - OK
-Econtrar forma de AI "ouvir" input do teclado (MIDI)
+## Architecture
+
+## The genetic algorithm
+
+## The graphical interface
+
+
+## Next steps:
+
+
 

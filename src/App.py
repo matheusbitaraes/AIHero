@@ -12,26 +12,37 @@ import mingus.extra.lilypond as LilyPond
 import time
 
 from src.AIHero import AIHero
-from src.AISynth import AISynth
+from src.AISynthDEPRECATED import AISynth
 from src.Fitness import Fitness
 from src.resources import *
 
+
+# GUI STANDARD DEFINITIONS
+
 MENU_TITLES = ['Notes of chord', 'Notes on tempo', 'Notes interval', 'Notes repetition', 'Notes Pitch', 'Note variety',
                'Note sequency', 'muscular memory']
+STD_CENTRAL_NOTE = 60
+STD_BPM = 90
+STD_NUM_COMPASS = 2
+STD_PULSES = 4
+STD_SCALE = 'minor_blues_scale'
+STD_CHORD_SEQUENCE = ['1-7', '4-7', '1-7', '1-7', '4-7', '4-7', '1-7', '1-7', '5-7', '4-7', '1-7', '5-7']
+STD_TRANSITION_TIME = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]
+STD_FITNESS_FUNCTIONS = Fitness(0, 0, 0, 0, 0, 0, 0, 0)
 
 
 class AIHeroUI(App):
     def __init__(self, **kwargs):
         super(AIHeroUI, self).__init__(**kwargs)
-        self.central_note = 60
-        self.bpm = 90
-        self.num_compass = 2
-        self.pulses_on_compass = 4
-        self.scaleName = 'minor_blues_scale'
-        self.chord_sequence = ['1-7', '4-7', '1-7', '1-7', '4-7', '4-7', '1-7', '1-7', '5-7', '4-7', '1-7', '5-7']
-        self.chord_transition_time = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44]
+        self.central_note = STD_CENTRAL_NOTE
+        self.bpm = STD_BPM
+        self.num_compass = STD_NUM_COMPASS
+        self.pulses_on_compass = STD_PULSES
+        self.scaleName = STD_SCALE
+        self.chord_sequence = STD_CHORD_SEQUENCE
+        self.chord_transition_time = STD_TRANSITION_TIME
         self.melody_notes = Track()
-        self.fitness_function = Fitness(0, 0, 0, 0, 0, 0, 0, 0)
+        self.fitness_function = STD_FITNESS_FUNCTIONS
         self.stop = False
 
     def build(self):
@@ -164,7 +175,7 @@ class AIHeroUI(App):
         ai_hero = AIHero(self.central_note, self.bpm, self.num_compass, self.pulses_on_compass, scale,
                          self.chord_sequence, self.fitness_function)
 
-        # returns a lista of notes where each notes returns a fuse
+        # returns a list of notes where each notes returns a fuse
         synth = AISynth()
         track = Track()
         first_execution = True  # indicates if it is the first time that the algorithm is being executed

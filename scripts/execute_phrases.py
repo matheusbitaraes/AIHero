@@ -1,6 +1,6 @@
 import time
 
-from src.AISynth import AISynth
+from src.AISynthDEPRECATED import AISynth
 from src.resources import *
 from mingus.containers.note import Note
 from mingus.containers import Bar, NoteContainer, Track
