@@ -129,5 +129,6 @@ dmypy.json
 .pyre/
 
 src/.temp
+src/GAN/Data/training_checkpoints
 fluidsynth
 .idea

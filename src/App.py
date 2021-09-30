@@ -7,12 +7,12 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
-from mingus.containers import Bar, Track
+from mingus.containers import Track
 import mingus.extra.lilypond as LilyPond
 import time
 
 from src.AIHero import AIHero
-from src.AISynthDEPRECATED import AISynth
+from src.Synth.AISynthDEPRECATED import AISynth
 from src.Fitness import Fitness
 from src.resources import *
 
