@@ -6,6 +6,7 @@ from mingus.containers import Bar, Track
 from src.Fitness import Fitness
 from mingus.containers.note import Note
 from src.resources import *
+import matplotlib.pyplot as plt
 
 
 class AIHero:
@@ -23,9 +24,10 @@ class AIHero:
         self.k = 0.30  # percentage of individuals that will participate of tournament
         self.pc = 0.5  # crossover probability
         self.pm = 0.05  # child mutation probability
-        self.pnm = 0.02  # probability of changing a note when a child is going on mutation
+        self.pnm = 0.05  # probability of changing a note when a child is going on mutation
         self.chord_note_prob = 0.05  # (initial population) probability of a note to be from the chord
         self.next_note_range = 8  # (initial population) max distances (semitones) between two notes in sequence
+        self.interval_prob = 0.8 # percentage of interval for population generation
         self.fitness_function = fitness_function
 
     def generateMelodyArray(self, compassId=None):
@@ -40,7 +42,7 @@ class AIHero:
                 compass_chord = self.chord_sequence[i]  # acorde do inicio do compasso
 
                 # Optimization result
-                note_array = self.geneticAlgorithm(compass_chord)
+                note_array, fitness_evolution = self.geneticAlgorithm(compass_chord)
 
                 # transform in notes
                 for j in range(0, len(note_array)):
@@ -59,7 +61,7 @@ class AIHero:
             compass_chord = self.chord_sequence[compassId]
 
             # optimization result
-            note_array = self.geneticAlgorithm(compass_chord)
+            note_array, fitness_evolution = self.geneticAlgorithm(compass_chord)
 
             # transform in notes
             for j in range(0, len(note_array)):
@@ -75,12 +77,20 @@ class AIHero:
                     note_track + note_bar
                     note_bar = Bar()  # create a new bar
         note_track + note_bar
+
+        # plot fitness convergence
+        plt.plot(fitness_evolution)
+        plt.ylabel('Fitness')
+        plt.xlabel('Generations')
+        plt.show()
+
         return note_track
 
     def geneticAlgorithm(self, compass_chord):
         total_notes = self.pulses_on_compass * self.fuse
         fitness = np.zeros(self.pop_size)
         best_individual = None
+        best_fitness = []
 
         # initiates population
         pop = self.generatePopulation(compass_chord)
@@ -93,7 +103,7 @@ class AIHero:
                 fitness[j] = self.fitness_function.eval(pop[j], chords[compass_chord])
 
             # print("best fitness:", fitness[np.argsort(-fitness)[0]])
-            best_fitness = fitness[np.argsort(-fitness)[0]]
+            best_fitness.append(fitness[np.argsort(-fitness)[0]])
             best_individual = pop[np.argsort(-fitness)[0]]
 
             idx = 0
@@ -116,9 +126,11 @@ class AIHero:
 
             pop = new_pop
 
-        return best_individual
+        return best_individual, best_fitness
 
     def generatePopulation(self, compass_chord):
+        should_apply_rythmic_pattern = False
+
         total_notes = self.pulses_on_compass * self.fuse
         octave1 = [x + 12 for x in self.scale][1:]
         octave2 = [x + 12 for x in octave1][1:]
@@ -135,19 +147,26 @@ class AIHero:
             for idn in range(0, len(notes_of_scale)):
                 reduced_scale = expanded_scale[abs(expanded_scale - notes_of_scale[idn - 1]) < self.next_note_range]
 
-                # pega nota aleatória dentro da escala
-                notes_of_scale[idn] = reduced_scale[np.random.randint(len(reduced_scale))]
+                if should_apply_rythmic_pattern:
+                    notes_of_scale[idn] = reduced_scale[np.random.randint(len(reduced_scale))] # insert scale aleatory note
+                else:
+                    if random() > self.interval_prob:
+                        notes_of_scale[idn] = reduced_scale[np.random.randint(len(reduced_scale))] # insert scale aleatory note
+                    else:
+                        notes_of_scale[idn] = -1
 
             # Aplica padrões ritmicos
-            rp = rhythmic_patterns[str(self.pulses_on_compass)]
-            rhythmic_pattern = notes_of_scale * 0
-            for idr in range(0, self.pulses_on_compass):
-                a = idr * self.fuse
-                b = (idr + 1) * self.fuse
-                rhythmic_pattern[a:b] = rp[
-                    round(randrange(len(rp)))]  # chooses an aleatory  rithmic pattern from pattern database
+            if should_apply_rythmic_pattern:
+                rp = rhythmic_patterns[str(self.pulses_on_compass)]
+                rhythmic_pattern = notes_of_scale * 0
+                for idr in range(0, self.pulses_on_compass):
+                    a = idr * self.fuse
+                    b = (idr + 1) * self.fuse
+                    rhythmic_pattern[a:b] = rp[
+                        round(randrange(len(rp)))]  # chooses an aleatory  rithmic pattern from pattern database
 
-            notes_of_scale[rhythmic_pattern < 0] = -1
+                notes_of_scale[rhythmic_pattern < 0] = -1
+
             pop[j] = notes_of_scale
 
         return pop

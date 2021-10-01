@@ -1,0 +1,2 @@
+class GanTrainingException(Exception):
+    pass
