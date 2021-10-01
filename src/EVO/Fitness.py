@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.resources import *
+from src.EVO.resources import *
 
 
 class Fitness:

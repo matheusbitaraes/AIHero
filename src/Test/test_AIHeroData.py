@@ -1,7 +1,7 @@
 from glob import glob
 from unittest import TestCase
 
-from src.AIHeroData import AIHeroData
+from src.Data.AIHeroData import AIHeroData
 
 
 class TestAIHeroData(TestCase):

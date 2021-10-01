@@ -1,4 +1,4 @@
-from src.AIHeroData import AIHeroData
+from src.Data.AIHeroData import AIHeroData
 from src.GAN.Exceptions.GANExceptions import GanTrainingException
 from src.utils.AIHeroEnums import MelodicPart
 from glob import glob

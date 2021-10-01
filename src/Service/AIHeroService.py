@@ -1,4 +1,4 @@
-from src.AIHeroData import AIHeroData
+from src.Data.AIHeroData import AIHeroData
 from src.GAN.Service.GANService import GANService
 
 

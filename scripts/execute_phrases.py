@@ -1,7 +1,7 @@
 import time
 
 from src.Synth.AISynthDEPRECATED import AISynth
-from src.resources import *
+from src.EVO.resources import *
 from mingus.containers.note import Note
 from mingus.containers import Bar, Track
 import mingus.extra.lilypond as LilyPond

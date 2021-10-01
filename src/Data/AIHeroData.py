@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from mingus.containers import Bar, Note, Track, Composition
 from mingus.midi import midi_file_in
 
-from src.resources import *
+from src.EVO.resources import *
 
 MIDI_NOTES_NUMBER = 108
 

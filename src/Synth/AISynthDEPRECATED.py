@@ -1,9 +1,7 @@
 import fluidsynth
 import numpy as np
-import time
 
-
-from src.resources import *
+from src.EVO.resources import *
 
 
 class AISynth:
