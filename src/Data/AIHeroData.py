@@ -3,7 +3,7 @@ import mingus.core.notes as notes
 import numpy as np
 from matplotlib import pyplot as plt
 from mingus.containers import Bar, Note, Track, Composition
-from mingus.midi import midi_file_in
+from mingus.midi import midi_file_in, midi_file_out
 
 from src.EVO.resources import *
 
@@ -204,7 +204,8 @@ class AIHeroData:
         plt.savefig(f'{file_name}.png', dpi=900)
 
     def export_as_midi(self, path='', file_name="teste"):
-        pass
+        for composition in self.get_mingus_composition():
+            midi_file_out.write_Composition(f"{file_name}.mid", composition[0])
 
 
 def convert_name_into_number(name):

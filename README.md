@@ -3,9 +3,15 @@ AI for music improvisation
 
 TODO: insert image of the flow here
 
+Tarefas:
+ - [ ] Definição embasada dos modelos gerador e discriminador da GAN.
+ - [ ] Reflexão sobre como adequar melodias aos acordes.
+ - [ ] Geração de mais amostras de teste.
+ - [ ] Implementação da execução da melodia e montagem com a base.
+
+
+
 TODO:
-- Criar linhas de baixo com mingus.
-- Migrar acordes para mingus.
 - fazer algoritmo genético convergir melhor.
 - fazer os intervalos virarem duraçoes aleatorias das notas! tipo, se tem só 1 nota no tempo, ela pode assumir a duraçao da fusa ate a seminima.
 - Desenhar arquitetura.
