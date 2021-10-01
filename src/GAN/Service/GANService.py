@@ -13,11 +13,12 @@ class GANService:
             if verbose:
                 print(f"Trainning GAN of melodic part: {part.value}")
             try:
-                self.gans[part.value].train(epochs=epochs,
-                                            verbose=verbose,
-                                            should_generate_gif=should_generate_gif)
+                self.train_gan(part=part.value, epochs=epochs, verbose=verbose, should_generate_gif=should_generate_gif)
             except GanTrainingException:
                 print(f"Error training GAN for part {part.value}")
+
+    def train_gan(self, part, epochs, verbose, should_generate_gif):
+        return self.gans[part].train(epochs=epochs, verbose=verbose, should_generate_gif=should_generate_gif)
 
     def generate_melodies(self, specs_list):
         for specs in specs_list:

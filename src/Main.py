@@ -30,8 +30,8 @@ with open('config.json') as config_file:
 ai_hero_service = AIHeroService(config)
 ai_hero_data = ai_hero_service.generate_ai_hero_data(bars)
 
-ai_hero_data.generate_piano_roll_image()
-
+ai_hero_data.export_as_image()
+ai_hero_data.export_as_midi()
 # Executa a melodia (o que seria feito pelo front)
 # ai_hero_synth_service = AISynth()
 # ai_hero_synth_service.play_composition(ai_hero_data.get_mingus_composition())

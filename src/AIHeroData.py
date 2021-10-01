@@ -186,7 +186,7 @@ class AIHeroData:
                 compositions_converted.append(composition_converted)
             return compositions_converted
 
-    def generate_piano_roll_image(self, path='', file_name="teste", title="Piano Roll of Melody"):
+    def export_as_image(self, path='', file_name="teste", title="Piano Roll of Melody"):
         data = self.get_piano_roll_as_matrix()
         num_bars = data.shape[0]
         concat_data = np.ndarray((MIDI_NOTES_NUMBER, 32 * num_bars))
@@ -202,6 +202,9 @@ class AIHeroData:
         plt.xlabel("Fuses")
         plt.title(title)
         plt.savefig(f'{file_name}.png', dpi=900)
+
+    def export_as_midi(self, path='', file_name="teste"):
+        pass
 
 
 def convert_name_into_number(name):
