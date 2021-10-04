@@ -31,9 +31,10 @@ ai_hero_service = AIHeroService(config)
 ai_hero_data = ai_hero_service.generate_ai_hero_data(bars)
 
 ai_hero_data.export_as_image(file_name="exported_image")
-ai_hero_data.export_as_midi()
+ai_hero_data.append_base_track(midi_file="Resources/blues_base.mid")
+ai_hero_data.export_as_midi(file_name="Resources/exported_melody")
 
 # Executa a melodia (o que seria feito pelo front)
-# ai_hero_synth_service = AISynth()
-# ai_hero_synth_service.play_composition(ai_hero_data.get_mingus_composition())
+# ai_hero_synth_service = AISynth(config)
+# ai_hero_synth_service.play_compositions(ai_hero_data.get_mingus_composition())
 

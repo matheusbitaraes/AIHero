@@ -1,3 +1,4 @@
 {
-  "checkpoint_folder": "GAN/Data/training_checkpoints"
+  "checkpoint_folder": "GAN/Data/training_checkpoints",
+  "fluidsynth_path": "../fluidsynth/FluidR3_GM.sf2"
 }

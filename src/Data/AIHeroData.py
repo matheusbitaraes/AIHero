@@ -41,11 +41,11 @@ class AIHeroData:
         composition_list = []
         composition = []
         loaded_tracks = []
+        loaded_bars = []
         for bar in bars:
-            loaded_bars = []
             for i in range(bar.shape[0]):
                 loaded_bars.append(bar[i, :, :, 0])
-            loaded_tracks.append(loaded_bars)
+        loaded_tracks.append(loaded_bars)
         composition.append(loaded_tracks)
         composition_list.append(composition)
         self.set_piano_roll(composition_list)
@@ -138,7 +138,7 @@ class AIHeroData:
                                     idx = idx + 1
                                 if bar[idx] != -1:
                                     octave, note_int = get_octave_and_note(bar[idx])
-                                    new_note = Note(notes.int_to_note(note_int), octave=octave, velocity=50)
+                                    new_note = Note(notes.int_to_note(note_int), octave=octave, velocity=90)
                                     b.place_notes(new_note, 32 / note_duration)
                                 else:
                                     b.place_rest(32 / note_duration)
@@ -206,6 +206,15 @@ class AIHeroData:
     def export_as_midi(self, path='', file_name="teste"):
         for composition in self.get_mingus_composition():
             midi_file_out.write_Composition(f"{file_name}.mid", composition[0])
+
+    def append_base_track(self, midi_file):
+        base_composition = midi_file_in.MIDI_to_Composition(midi_file)
+        base_track = base_composition[0].tracks[0]
+        new_compositions = self.get_mingus_composition()
+        for new_composition in new_compositions:
+            new_composition[0].add_track(base_track)
+
+        self.set_mingus_composition(new_compositions)
 
 
 def convert_name_into_number(name):
