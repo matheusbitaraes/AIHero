@@ -5,21 +5,14 @@ from glob import glob
 
 
 class GANTrainingData:
-    def __init__(self, melodic_part=MelodicPart.X):
-        self.ai_hero_data = AIHeroData()
-        if melodic_part == MelodicPart.X:
-            self.file_glob = glob("Data/resources/train/part_x_*")
-        elif melodic_part == MelodicPart.Y:
-            self.file_glob = glob("Data/resources/train/part_y_*")
-        elif melodic_part == MelodicPart.Z:
-            self.file_glob = glob("Data/resources/train/part_z_*")
-        elif melodic_part == MelodicPart.K:
-            self.file_glob = glob("Data/resources/train/part_j_*")
-        elif melodic_part == MelodicPart.J:
-            self.file_glob = glob("Data/resources/train/part_k_*")
-        else:
-            raise GanTrainingException("Melodic part does not exist")
+    def __init__(self, melodic_part=MelodicPart.X, file_directory="Data/train"):
+        self._ai_hero_data = AIHeroData()
+        self._file_glob = glob(f"{file_directory}/part_{melodic_part.name}_*")
 
-    def get(self):
-        self.ai_hero_data.load_from_midi_files(self.file_glob)
-        return self.ai_hero_data.get_piano_roll_as_matrix()
+    def get_as_matrix(self):
+        self._ai_hero_data.load_from_midi_files(self._file_glob)
+        return self._ai_hero_data.get_spr_as_matrix()
+
+    def load(self):
+        self._ai_hero_data.load_from_midi_files(self._file_glob)
+        return self._ai_hero_data

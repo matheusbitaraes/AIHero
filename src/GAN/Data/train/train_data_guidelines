@@ -1,0 +1,4 @@
+The training data must be in the following format:
+    - part_{part_type}_{name}_{chord}.mid
+
+every training file is a composition and every bar will be intented to have same chord

@@ -9,5 +9,5 @@ with open('config.json') as config_file:
 
 gan_service = GANService(config)
 # gan_service.train_gan(part=, epochs=100, verbose=True, should_generate_gif=True)
-gan_service.train_gans(epochs=200, verbose=True, should_generate_gif=True)
+gan_service.train_gans(epochs=50, should_generate_gif=True)
 

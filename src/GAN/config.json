@@ -1,3 +1,4 @@
 {
-  "checkpoint_folder": "Data/training_checkpoints"
+  "checkpoint_folder": "Data/training_checkpoints",
+  "verbose": true
 }
