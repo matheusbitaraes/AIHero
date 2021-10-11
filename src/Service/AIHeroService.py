@@ -28,12 +28,12 @@ class AIHeroService:
 
     def generate_compositions(self, melody_specs_list):
         ai_hero_data = AIHeroData()
-        melody_list = []
+        melody_tuples = []
         try:
             for melody_specs in melody_specs_list:
                 raw_melody = self.generate_melody(melody_specs)
-                melody_list.append(raw_melody)
-            ai_hero_data.load_from_GAN_melody_raw(melody_list)
+                melody_tuples.append((raw_melody, melody_specs["chord"]))
+            ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
         except Exception as e:
             print(f"Exception in AI Hero Service: Cannot Generate Melody: {e}")
             print(traceback.format_exc())
@@ -41,12 +41,12 @@ class AIHeroService:
 
     def generate_compositions_with_train_data(self, melody_specs_list):
         ai_hero_data = AIHeroData()
-        melody_list = []
+        melody_tuples = []
         try:
             for melody_specs in melody_specs_list:
                 raw_melody = self.get_random_train_data_as_matrix(melody_specs)
-                melody_list.append(raw_melody)
-            ai_hero_data.load_from_GAN_melody_raw(melody_list)
+                melody_tuples.append((raw_melody, melody_specs["chord"]))
+            ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
         except Exception as e:
             print(f"Exception in AI Hero Service: Cannot Generate Melody: {e}")
             print(traceback.format_exc())

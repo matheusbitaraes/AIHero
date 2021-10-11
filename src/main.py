@@ -13,18 +13,18 @@ with open('config.json') as config_file:
 
 
 bars = [
-        {'melodic_part': MelodicPart.X, 'chord': 'C7'},
-        {'melodic_part': MelodicPart.Y, 'chord': 'F7'},
-        {'melodic_part': MelodicPart.X, 'chord': 'C7'},
-        {'melodic_part': MelodicPart.X, 'chord': 'C7'},
-        {'melodic_part': MelodicPart.X, 'chord': 'F7'},
-        {'melodic_part': MelodicPart.Y, 'chord': 'F7'},
-        {'melodic_part': MelodicPart.X, 'chord': 'C7'},
-        {'melodic_part': MelodicPart.X, 'chord': 'C7'},
-        {'melodic_part': MelodicPart.Y, 'chord': 'G7'},
-        {'melodic_part': MelodicPart.Y, 'chord': 'F7'},
-        {'melodic_part': MelodicPart.X, 'chord': 'C7'},
-        {'melodic_part': MelodicPart.Z, 'chord': 'G7'},
+        {'melodic_part': MelodicPart.X, 'chord': 'C'},
+        {'melodic_part': MelodicPart.Y, 'chord': 'F'},
+        {'melodic_part': MelodicPart.X, 'chord': 'C'},
+        {'melodic_part': MelodicPart.X, 'chord': 'C'},
+        {'melodic_part': MelodicPart.X, 'chord': 'F'},
+        {'melodic_part': MelodicPart.Y, 'chord': 'F'},
+        {'melodic_part': MelodicPart.X, 'chord': 'C'},
+        {'melodic_part': MelodicPart.X, 'chord': 'C'},
+        {'melodic_part': MelodicPart.Y, 'chord': 'G'},
+        {'melodic_part': MelodicPart.Y, 'chord': 'F'},
+        {'melodic_part': MelodicPart.X, 'chord': 'C'},
+        {'melodic_part': MelodicPart.Z, 'chord': 'G'},
 ]
 # Acessa módulo AIHERO pedindo a melodia especificada
 ai_hero_service = AIHeroService(config)

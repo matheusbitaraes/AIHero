@@ -49,9 +49,11 @@ class AIHeroData:
         composition = []
         loaded_tracks = []
         loaded_bars = []
-        for bar in bars:
+        for bar_tuple in bars:
+            bar = bar_tuple[0]
             for i in range(bar.shape[0]):
                 loaded_bars.append(bar[i, :, :, 0])
+                self.chord_list.append(bar_tuple[1])
         loaded_tracks.append(loaded_bars)
         composition.append(loaded_tracks)
         composition_list.append(composition)
@@ -238,7 +240,8 @@ class AIHeroData:
                     t = Track()
                     for matrix in bars:
                         b = Bar()
-                        # b.key.name = self.chord_list[key_id] todo: fazer isso
+                        chord = self.chord_list[key_id]
+                        b.key.name = chord
                         # key_id += 1
                         i = 0
                         while i < matrix.shape[1]:
@@ -248,7 +251,7 @@ class AIHeroData:
                             n = NoteContainer()
                             n.empty()
                             for note in notes_matrix[0]:
-                                octave, note_int = revert_spr_note(note)
+                                octave, note_int = revert_spr_note(note, chord)
                                 # print(f"place note {note}, {note_int}, {notes.int_to_note(note_int)} in fuse {i}")
                                 new_note = Note(notes.int_to_note(note_int), octave=octave, velocity=90)
                                 n.add_notes(new_note)
@@ -262,6 +265,7 @@ class AIHeroData:
                             i += 1
                         b = unite_notes(b)
                         t.add_bar(b)
+                        key_id += 1
                     c.add_track(t)
             compositions_converted.append((c, self.bpm))
         return compositions_converted
@@ -311,6 +315,7 @@ class AIHeroData:
         base_track = base_composition[0].tracks[0]
         new_compositions = self.get_mingus_compositions()
         for new_composition in new_compositions:
+            new_composition = (new_composition[0], base_composition[1])
             new_composition[0].add_track(base_track)
 
         self.set_mingus_compositions(new_compositions)
@@ -324,6 +329,7 @@ def convert_bar_to_pr(bar):
     # bar = [current beat, duration, notes]
     converted_notes = np.zeros((MIDI_NOTES_NUMBER, TIME_DIVISION)) - 1
     key_number = note_reference[bar.key.key]  # para adequar bar ao key
+    print(bar.current_beat)
     for note_container in bar.bar:
         notes = note_container[2]
         if notes:
@@ -389,9 +395,10 @@ def convert_bar_to_data(bar):
     return converted_notes
 
 
-def revert_spr_note(note):
+def revert_spr_note(note, chord):
     normalization_factor = int((SCALED_NOTES_RANGE[1] - SCALED_NOTES_RANGE[0]) / 2)
-    pr_note = CENTRAL_NOTE_NUMBER + note - normalization_factor
+    chord_normalization = notes.note_to_int(chord)  # factor that will translate phrase according to the chord
+    pr_note = CENTRAL_NOTE_NUMBER + note - normalization_factor + chord_normalization
     return get_octave_and_note(pr_note)
 
 
