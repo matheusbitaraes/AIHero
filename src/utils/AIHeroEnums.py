@@ -5,5 +5,11 @@ class MelodicPart(Enum):
     X = 'RELAXATION'
     Y = 'TENSION'
     Z = 'RETAKE'
-    # K = 'TRANSITION_2'
-    # J = 'RETAKE'
+
+    def get_from_value(self, value):
+        if value == "RELAXATION":
+            return MelodicPart.X
+        if value == "TENSION":
+            return MelodicPart.Y
+        if value == "RETAKE":
+            return MelodicPart.X

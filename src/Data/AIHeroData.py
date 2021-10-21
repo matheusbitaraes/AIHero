@@ -6,8 +6,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 from mingus.containers import Bar, Note, Track, Composition, NoteContainer
 from mingus.midi import midi_file_in, midi_file_out
+import mido
+import pypianoroll
 
-from src.EVO.resources import *
+
+from src.EVO.Resources.resources import *
 from src.utils.AIHeroGlobals import MIDI_NOTES_NUMBER, TIME_DIVISION, CENTRAL_NOTE_NUMBER, SCALED_NOTES_RANGE, \
     SCALED_NOTES_NUMBER
 
@@ -30,6 +33,20 @@ class AIHeroData:
 
         if pr is not None:
             self.set_data(pr)
+
+    def load_from_midi_files_experimental(self, train_files):
+        # convert midi data into the used class
+        piano_rolls = []
+        for file in train_files:
+            try:
+                # piano_roll = convert_mido_to_piano_roll(mido.MidiFile(file, clip=True))
+                aa = pypianoroll.read(file)
+                chord = get_chord_from_filename(file)
+                piano_rolls.append(add_chord_to_composition(piano_rolls, chord))
+            except Exception as e:
+                print(f"error converting MIDI into mingus file: {e}")
+                print(traceback.format_exc())
+        self.set_pr(piano_rolls)
 
     def load_from_midi_files(self, train_files):
         # convert midi data into the used class
@@ -96,6 +113,7 @@ class AIHeroData:
 
     def set_mingus_compositions(self, compositions):
         self._mingus_composition_list = compositions
+        # self.export_as_midi()
         self._pr_data = self.convert_mingus_composition(convert_into="pr")
         self._spr_data = self.convert_mingus_composition(convert_into="spr")
         self._data = self.convert_mingus_composition(convert_into="data")
@@ -232,6 +250,7 @@ class AIHeroData:
 
     def revert_spr(self):
         compositions_converted = []
+        max_key_id = len(self.chord_list)
         key_id = 0
         for composition in self.get_spr():
             c = Composition()
@@ -242,7 +261,6 @@ class AIHeroData:
                         b = Bar()
                         chord = self.chord_list[key_id]
                         b.key.name = chord
-                        # key_id += 1
                         i = 0
                         while i < matrix.shape[1]:
                             notes_matrix = np.where(matrix[:, i] > 0)
@@ -266,6 +284,8 @@ class AIHeroData:
                         b = unite_notes(b)
                         t.add_bar(b)
                         key_id += 1
+                        if key_id == max_key_id:
+                            key_id = 0
                     c.add_track(t)
             compositions_converted.append((c, self.bpm))
         return compositions_converted
@@ -319,6 +339,7 @@ class AIHeroData:
             new_composition[0].add_track(base_track)
 
         self.set_mingus_compositions(new_compositions)
+        self.revert_spr()
 
 
 def convert_name_into_number(name):
@@ -329,7 +350,6 @@ def convert_bar_to_pr(bar):
     # bar = [current beat, duration, notes]
     converted_notes = np.zeros((MIDI_NOTES_NUMBER, TIME_DIVISION)) - 1
     key_number = note_reference[bar.key.key]  # para adequar bar ao key
-    print(bar.current_beat)
     for note_container in bar.bar:
         notes = note_container[2]
         if notes:
@@ -448,3 +468,22 @@ def unite_notes(bar):
             output_bar.place_rest(TIME_DIVISION / duration)
         i += 1
     return output_bar
+
+def convert_mido_to_piano_roll(mido_data):
+    composition = Composition()
+    ticks_per_beat = mido_data.ticks_per_beat
+    beats = 4
+    total_ticks = ticks_per_beat * beats
+    for track in mido_data.tracks:
+        b = Bar()
+        time = 0
+        for bar in track:
+            time += bar.time
+            if not bar.is_meta:
+                note = bar.note
+                if bar.type == 'note_on':
+                    print(f'note_on {note} on {time}, {time/total_ticks} ticks')
+                elif bar.type == 'note_off':
+                    print(f'note_off {note} on {time/total_ticks} ticks')
+
+    return composition

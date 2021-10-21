@@ -26,11 +26,11 @@ class GANService:
         for specs in specs_list:
             return self.generate_melody(specs)
 
-    def generate_melody(self, specs=None):
-        melodic_part = specs["melodic_part"]
+    def generate_melody(self, specs=None, num_melodies=1):
+        melodic_part = MelodicPart(specs["melodic_part"])
         try:
             gan = self.gans[melodic_part.value]
-            return gan.generate_melody_matrix(new_seed=True)
+            return gan.generate_melody_matrix(num_melodies=num_melodies, new_seed=True)
         except GanTrainingException as e:
             print(f"Exception in GAN Service: Gan for part {melodic_part} is not trained: {e}")
         except Exception as e:

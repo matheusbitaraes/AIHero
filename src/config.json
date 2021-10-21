@@ -1,5 +1,13 @@
 {
   "checkpoint_folder": "GAN/Data/training_checkpoints",
   "fluidsynth_path": "../fluidsynth/FluidR3_GM.sf2",
-  "verbose": true
+  "verbose": true,
+  "evolutionary_algorithm_config": {
+    "population_size": 100,
+    "max_generations": 150,
+    "tournament_percentage": 0.3,
+    "crossover_probability": 0.5,
+    "child_mutation_probability": 0.05,
+    "note_change_probability": 0.05
+  }
 }

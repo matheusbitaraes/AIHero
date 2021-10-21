@@ -1,7 +1,7 @@
 import fluidsynth
 import numpy as np
 
-from src.EVO.resources import *
+from src.EVO.Resources.resources import *
 
 
 class AISynth:

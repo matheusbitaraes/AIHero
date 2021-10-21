@@ -5,11 +5,14 @@ TODO: insert image of the flow here
 
 Tarefas:
  - [ ] Definição embasada dos modelos gerador e discriminador da GAN.
- - [x] Reflexão sobre como adequar melodias aos acordes: fazer piano_rolls padronizados pelos acordes
+ - [ ] Colocar plots que mostram evolução das perdas no gerador e discriminador
+ - [X] Reflexão sobre como adequar melodias aos acordes: fazer piano_rolls padronizados pelos acordes
  - [ ] criar testes para validar os scaled_piano_rolls
- - [ ] Adequar dados de teste atual e treinamento para usar scaled_piano_roll
- - [ ] Geração de mais amostras de teste.
- - [x] Implementação da execução da melodia e montagem com a base.
+ - [X] Adequar dados de teste atual e treinamento para usar scaled_piano_roll
+ - [X] Geração de mais amostras de teste.
+ - [X] Implementação da execução da melodia e montagem com a base.
+ - [ ] Colocar algoritmo evolucionário no processo.
+ - [ ] Adicionar velocidades aos piano_rolls e criar mais esse conceito?
 
 
 

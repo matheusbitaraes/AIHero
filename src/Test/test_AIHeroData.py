@@ -3,17 +3,18 @@ from unittest import TestCase
 
 from src.Data.AIHeroData import AIHeroData
 
+TRAIN_FILES_DIRECTORY = "resources/part_X_manual_3_C_*"
 
 class TestAIHeroData(TestCase):
     def setUp(self):
         self.ai_hero_data = AIHeroData()
-        self.ai_hero_data.load_from_midi_files(glob("resources/Blues*"))
+        self.ai_hero_data.load_from_midi_files(glob(TRAIN_FILES_DIRECTORY))
 
     def test_image_plot(self):
-        self.ai_hero_data.export_as_image()
+        self.ai_hero_data.export_spr_as_image(file_name="image_export_test")
 
     def test_midi_export(self):
-        self.ai_hero_data.export_as_midi(file_name="loaded_mingus")
+        self.ai_hero_data.export_as_midi(file_name="loaded_mingus_test")
 
     def test_composition_to_data_conversion(self):  # todo: create "expected" value
         previous, converted = test_conversion(self.ai_hero_data, "mingus_composition", "data")

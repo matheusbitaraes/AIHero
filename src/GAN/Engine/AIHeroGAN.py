@@ -292,20 +292,20 @@ class AIHeroGAN:
             image = imageio.imread(filename)
             writer.append_data(image)
 
-    def generate_melody_matrix(self, new_seed=False):
-        predictions = self.generate_prediction(new_seed)
+    def generate_melody_matrix(self, num_melodies=1, new_seed=False):
+        predictions = self.generate_prediction(new_seed, size=num_melodies)
         np_config.enable_numpy_behavior()
         melody = tf.Variable(predictions)
         for i in range(melody.shape[0]):
             melody[i, :, :, 0].assign(round(melody[i, :, :, 0]))
         return melody.numpy()
 
-    def generate_prediction(self, new_seed=False):
+    def generate_prediction(self, new_seed=False, size=1):
         # Notice `training` is set to False.
         # This is so all layers run in inference mode (batchnorm).
         if new_seed:
-            new_seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
-            predictions = self.generator_model(new_seed, training=False)
+            seed = tf.random.normal([size, self.noise_dim])
+            predictions = self.generator_model(seed, training=False)
         else:
             predictions = self.generator_model(self.seed, training=False)
         return predictions
