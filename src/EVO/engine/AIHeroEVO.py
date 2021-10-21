@@ -3,12 +3,12 @@ from random import random, randrange
 import numpy as np
 from mingus.containers import Note
 
-from src.EVO.Engine.Fitness import Fitness
-from src.EVO.Resources.resources import *
+from src.EVO.engine.Fitness import Fitness
+from src.EVO.resources.resources import *
 import mingus.core.chords as chords
 import mingus.core.notes as notes
 
-from src.GAN.Service.GANService import GANService
+from src.GAN.service.GANService import GANService
 from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, CENTRAL_NOTE_NUMBER
 
 

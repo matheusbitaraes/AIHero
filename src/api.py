@@ -2,7 +2,7 @@ from json import load as jload
 
 from flask import Flask, redirect, url_for, request
 
-from src.Service.AIHeroService import AIHeroService
+from src.service.AIHeroService import AIHeroService
 
 with open('config.json') as config_file:
     config = jload(config_file)

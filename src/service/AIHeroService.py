@@ -3,10 +3,10 @@ import traceback
 
 import numpy as np
 
-from src.Data.AIHeroData import AIHeroData
-from src.EVO.Service.EVOService import EVOService
-from src.GAN.Data.GANTrainingData import GANTrainingData
-from src.GAN.Service.GANService import GANService
+from src.data.AIHeroData import AIHeroData
+from src.EVO.service.EVOService import EVOService
+from src.GAN.data.GANTrainingData import GANTrainingData
+from src.GAN.service.GANService import GANService
 from src.utils.AIHeroEnums import MelodicPart
 
 
@@ -30,7 +30,7 @@ class AIHeroService:
 
     def get_random_train_data_as_matrix(self, melody_specs):
         melodic_part = MelodicPart(melody_specs['melodic_part'])
-        train_data = GANTrainingData(melodic_part, file_directory="GAN/Data/train").get_as_matrix()
+        train_data = GANTrainingData(melodic_part, file_directory="GAN/data/train").get_as_matrix()
         index = random.sample(range(train_data.shape[0]), 1)[0]
         output = np.zeros((1, train_data.shape[1], train_data.shape[2], train_data.shape[3]))
         output[0, :, :, :] = train_data[index, :, :, :]

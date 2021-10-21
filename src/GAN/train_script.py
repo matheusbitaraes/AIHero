@@ -2,7 +2,7 @@
 # Este é o processo ue irá treinar as GANs.
 from json import load as jload
 
-from src.GAN.Service.GANService import GANService
+from src.GAN.service.GANService import GANService
 from src.utils.AIHeroEnums import MelodicPart
 
 with open('config.json') as config_file:

@@ -1,4 +1,4 @@
-from src.EVO.Engine.AIHeroEVO import AIHeroEVO
+from src.EVO.engine.AIHeroEVO import AIHeroEVO
 from src.utils.AIHeroEnums import MelodicPart
 
 

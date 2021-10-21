@@ -12,13 +12,13 @@ from tensorflow.keras import layers
 from tensorflow.python.ops.numpy_ops import np_config
 import traceback
 
-from src.GAN.Data.GANTrainingData import GANTrainingData
+from src.GAN.data.GANTrainingData import GANTrainingData
 from src.utils.AIHeroEnums import MelodicPart
 from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, TRAIN_DATA_REPLICAS, SCALED_NOTES_RANGE
 
 
 class AIHeroGAN:
-    def __init__(self, part=MelodicPart.X, checkpoint_folder='GAN/Data/training_checkpoints', verbose=False):
+    def __init__(self, part=MelodicPart.X, checkpoint_folder='GAN/data/training_checkpoints', verbose=False):
         self.part_type = part.value  # todo: fazer alguma verificação e validação para que o part seja sempre um valor do enum
 
         # training
@@ -33,7 +33,7 @@ class AIHeroGAN:
         self.__trained = False
         self.__verbose = verbose
 
-        self.evidence_dir = 'Data/evidences/gifs'
+        self.evidence_dir = 'data/evidences/gifs'
         self.checkpoint_dir = f'{checkpoint_folder}/part_{self.part_type}'
         self.checkpoint_prefix = os.path.join(self.checkpoint_dir, "ckpt")
 

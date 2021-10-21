@@ -1,7 +1,7 @@
 from glob import glob
 from unittest import TestCase
 
-from src.Data.AIHeroData import AIHeroData
+from src.data.AIHeroData import AIHeroData
 
 TRAIN_FILES_DIRECTORY = "resources/part_X_manual_3_C_*"
 

@@ -37,7 +37,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit Test / coverage reports
+# Unit test / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 src/.temp
-src/GAN/Data/training_checkpoints
+src/GAN/data/training_checkpoints
 fluidsynth

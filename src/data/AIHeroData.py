@@ -3,14 +3,12 @@ import traceback
 
 import mingus.core.notes as notes
 import numpy as np
+import pypianoroll
 from matplotlib import pyplot as plt
 from mingus.containers import Bar, Note, Track, Composition, NoteContainer
 from mingus.midi import midi_file_in, midi_file_out
-import mido
-import pypianoroll
 
-
-from src.EVO.Resources.resources import *
+from src.EVO.resources.resources import *
 from src.utils.AIHeroGlobals import MIDI_NOTES_NUMBER, TIME_DIVISION, CENTRAL_NOTE_NUMBER, SCALED_NOTES_RANGE, \
     SCALED_NOTES_NUMBER
 

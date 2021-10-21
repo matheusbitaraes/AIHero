@@ -1,11 +1,11 @@
-from src.Data.AIHeroData import AIHeroData
-from src.GAN.Exceptions.GANExceptions import GanTrainingException
+from src.data.AIHeroData import AIHeroData
+from src.GAN.exceptions.GANExceptions import GanTrainingException
 from src.utils.AIHeroEnums import MelodicPart
 from glob import glob
 
 
 class GANTrainingData:
-    def __init__(self, melodic_part=MelodicPart.X, file_directory="Data/train"):
+    def __init__(self, melodic_part=MelodicPart.X, file_directory="data/train"):
         self._ai_hero_data = AIHeroData()
         self._file_glob = glob(f"{file_directory}/part_{melodic_part.name}_*")
 
