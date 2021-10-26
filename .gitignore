@@ -130,4 +130,5 @@ dmypy.json
 
 src/.temp
 src/GAN/data/training_checkpoints
+src/GAN/data/evidences
 fluidsynth
