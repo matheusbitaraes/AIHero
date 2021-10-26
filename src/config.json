@@ -4,7 +4,7 @@
   "verbose": true,
   "evolutionary_algorithm_configs": {
     "population_size": 100,
-    "max_generations": 10,
+    "max_generations": 100,
     "tournament_percentage": 0.3,
     "crossover_probability": 0.5,
     "child_mutation_probability": 0.05,
