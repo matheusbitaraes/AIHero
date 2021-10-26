@@ -23,9 +23,10 @@ class AIHeroGAN:
 
         # training
         self.noise_dim = 100  # todo: experiment other values
-        self.num_examples_to_generate = 1  # numero de melodias que vai gerar
-        self.BATCH_SIZE = 25
-        self.BUFFER_SIZE = 25
+        self.num_examples_to_generate = 1  # number of melodies to be generated
+        self.BATCH_PERCENTAGE = 0.1
+        self.BATCH_SIZE = 25  # this will be subscribed
+        self.BUFFER_PERCENTAGE = 0.2
 
         self.training_data = GANTrainingData(melodic_part=part)
 
@@ -167,7 +168,7 @@ class AIHeroGAN:
 
     # Notice the use of `tf.function`
     # This annotation causes the function to be "compiled".
-    # @tf.function
+    @tf.function
     def train_step(self, images):
         # noise = tf.random.normal([self.BATCH_SIZE, self.noise_dim], mean=SCALED_NOTES_NUMBER/2, stddev=10)
         noise = tf.random.normal([self.BATCH_SIZE, self.noise_dim])
@@ -199,16 +200,11 @@ class AIHeroGAN:
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
             dataset = self.training_data.get_as_matrix()
-            dataset = np.repeat(dataset, TRAIN_DATA_REPLICAS, axis=0)  # todo: remover isso. parte provisória
+            dataset = np.repeat(dataset, TRAIN_DATA_REPLICAS, axis=0)  # DATASET AUGMENTATION
 
-            # add +1 do eliminate -1 notation (and intervals will be represented by 0 instead of -1)
-            # dataset = dataset + 1
-
-            # normalize dataset  to [-1, 1]
-            # dataset = (dataset - SCALED_NOTES_NUMBER/2) / (SCALED_NOTES_NUMBER/2)
-
-            # transform dataset into dim [total_size, numfingers, numfuses, 1]
-            train_dataset = tf.data.Dataset.from_tensor_slices(dataset).shuffle(self.BUFFER_SIZE).batch(self.BATCH_SIZE)
+            BUFFER_SIZE = np.int(dataset.shape[0] * self.BUFFER_PERCENTAGE)
+            self.BATCH_SIZE = np.int(dataset.shape[0] * self.BATCH_PERCENTAGE)
+            train_dataset = tf.data.Dataset.from_tensor_slices(dataset).shuffle(BUFFER_SIZE).batch(self.BATCH_SIZE)
 
             for epoch in range(epochs):
                 start = time.time()
@@ -257,7 +253,8 @@ class AIHeroGAN:
             a = b
             b = b + TIME_DIVISION
         plt.imshow(concat_data, cmap='Blues')
-        plt.axis([0, num_bars * TIME_DIVISION, SCALED_NOTES_RANGE[0], SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
+        plt.axis([0, num_bars * TIME_DIVISION, SCALED_NOTES_RANGE[0],
+                  SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
         plt.ylabel("MIDI Notes")
         plt.xlabel("Time Division")
         # plt.text(1, 90, f'Loss G: {results["generator_loss"]}, Loss D: {results["discriminator_loss"]}')
