@@ -13,7 +13,7 @@ class GANService:
     def train_gans(self, num_seeds=1, epochs=50, verbose=False, should_generate_gif=False):
         for part in MelodicPart:
             if verbose:
-                print(f"Trainning GAN of melodic part: {part.value}")
+                print(f"Training GAN of melodic part: {part.value}")
             try:
                 self.train_gan(part=part.value, num_seeds=num_seeds, epochs=epochs, should_generate_gif=should_generate_gif)
             except GanTrainingException:
