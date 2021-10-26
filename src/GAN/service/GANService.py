@@ -10,17 +10,17 @@ class GANService:
         self._config = config
         self.gans = self.build_gans()
 
-    def train_gans(self, epochs=50, verbose=False, should_generate_gif=False):
+    def train_gans(self, num_seeds=1, epochs=50, verbose=False, should_generate_gif=False):
         for part in MelodicPart:
             if verbose:
                 print(f"Trainning GAN of melodic part: {part.value}")
             try:
-                self.train_gan(part=part.value, epochs=epochs, should_generate_gif=should_generate_gif)
+                self.train_gan(part=part.value, num_seeds=num_seeds, epochs=epochs, should_generate_gif=should_generate_gif)
             except GanTrainingException:
                 print(f"Error training GAN for part {part.value}")
 
-    def train_gan(self, part, epochs, should_generate_gif):
-        return self.gans[part].train(epochs=epochs, should_generate_gif=should_generate_gif)
+    def train_gan(self, part, num_seeds=1, epochs=50, should_generate_gif=False):
+        return self.gans[part].train(num_seeds=num_seeds, epochs=epochs, should_generate_gif=should_generate_gif)
 
     def generate_melodies(self, specs_list):
         for specs in specs_list:

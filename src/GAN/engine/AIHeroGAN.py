@@ -22,7 +22,7 @@ class AIHeroGAN:
         self.part_type = part.value  # todo: fazer alguma verificação e validação para que o part seja sempre um valor do enum
 
         # training
-        self.noise_dim = 100
+        self.noise_dim = 100  # todo: experiment other values
         self.num_examples_to_generate = 1  # numero de melodias que vai gerar
         self.BATCH_SIZE = 25
         self.BUFFER_SIZE = 25
@@ -162,11 +162,12 @@ class AIHeroGAN:
         return total_loss
 
     def generator_loss(self, fake_output):
+        # computes cross entropy between fake output and best output (which is everything = 1)
         return self.cross_entropy(tf.ones_like(fake_output), fake_output)
 
     # Notice the use of `tf.function`
     # This annotation causes the function to be "compiled".
-    @tf.function
+    # @tf.function
     def train_step(self, images):
         # noise = tf.random.normal([self.BATCH_SIZE, self.noise_dim], mean=SCALED_NOTES_NUMBER/2, stddev=10)
         noise = tf.random.normal([self.BATCH_SIZE, self.noise_dim])
@@ -178,21 +179,6 @@ class AIHeroGAN:
             fake_output = self.discriminator_model(generated_images, training=True)
             gen_loss = self.generator_loss(fake_output)
             disc_loss = self.discriminator_loss(real_output, fake_output)
-
-            # y_pred = tf.concat([real_output, fake_output])
-            # y_true = tf.concat([tf.ones(self.BATCH_SIZE, 1),
-            #                     tf.zeros(self.BATCH_SIZE, 1)])
-
-            # self.metric_d_acc.update_state(y_true, y_pred)
-            # self.metric_g_acc.update_state(real_output, fake_output)
-
-            # if self.should_verbose():
-            #     print("\n\n")
-            #     print(f'real_out_sum: {sum(abs(real_output))}')
-            #     print(f'fake_ou_sum: {sum(abs(fake_output))}')
-            #     print(f'real_out - fake_out: {sum(abs(real_output-fake_output))}')
-            #     print(f'Gen Loss: {gen_loss}')
-            #     print(f'Discr loss: {gen_loss}')
 
         gradients_of_generator = gen_tape.gradient(gen_loss, self.generator_model.trainable_variables)
         gradients_of_discriminator = disc_tape.gradient(disc_loss, self.discriminator_model.trainable_variables)
@@ -207,8 +193,10 @@ class AIHeroGAN:
             "generator_loss": gen_loss
         }
 
-    def train(self, epochs=50, should_generate_gif=False):
-        # The dataset is a list of melodies encoded.
+    def train(self, num_seeds=1, epochs=50, should_generate_gif=False):
+        # todo: melhorar essa definição do tamanho do seed
+        self.num_examples_to_generate = num_seeds
+        self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
             dataset = self.training_data.get_as_matrix()
             dataset = np.repeat(dataset, TRAIN_DATA_REPLICAS, axis=0)  # todo: remover isso. parte provisória
