@@ -32,20 +32,6 @@ class AIHeroData:
         if pr is not None:
             self.set_data(pr)
 
-    def load_from_midi_files_experimental(self, train_files):
-        # convert midi data into the used class
-        piano_rolls = []
-        for file in train_files:
-            try:
-                # piano_roll = convert_mido_to_piano_roll(mido.MidiFile(file, clip=True))
-                aa = pypianoroll.read(file)
-                chord = get_chord_from_filename(file)
-                piano_rolls.append(add_chord_to_composition(piano_rolls, chord))
-            except Exception as e:
-                print(f"error converting MIDI into mingus file: {e}")
-                print(traceback.format_exc())
-        self.set_pr(piano_rolls)
-
     def load_from_midi_files(self, train_files):
         # convert midi data into the used class
         compositions = []
@@ -58,6 +44,19 @@ class AIHeroData:
                 print(f"error converting MIDI into mingus file: {e}")
                 print(traceback.format_exc())
         self.set_mingus_compositions(compositions)
+
+    def load_from_EVO_melody_raw(self, bars):
+        composition_list = []
+        composition = []
+        loaded_tracks = []
+        loaded_bars = []
+        for bar_tuple in bars:
+            loaded_bars.append(bar_tuple[0])
+            self.chord_list.append(bar_tuple[1])
+        loaded_tracks.append(loaded_bars)
+        composition.append(loaded_tracks)
+        composition_list.append(composition)
+        self.set_spr(composition_list)
 
     def load_from_GAN_melody_raw(self, bars):
         composition_list = []

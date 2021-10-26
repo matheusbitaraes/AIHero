@@ -14,6 +14,16 @@ from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, CENTRAL_
 
 class AIHeroEVO:
     def __init__(self, config):
+        self.max_generations = config["evolutionary_algorithm_configs"]["max_generations"]
+        self.pop_size = config["evolutionary_algorithm_configs"]["population_size"]
+        self.k = config["evolutionary_algorithm_configs"][
+            "tournament_percentage"]  # percentage of individuals that will participate of tournament
+        self.pc = config["evolutionary_algorithm_configs"]["crossover_probability"]  # crossover probability
+        self.pm = config["evolutionary_algorithm_configs"]["child_mutation_probability"]  # child mutation probability
+        self.pnm = config["evolutionary_algorithm_configs"][
+            "note_change_probability"]  # probability of changing a note when a child is going on mutation
+        self.gan_service = GANService(config)
+        self.fitness_function = Fitness(config["evolutionary_algorithm_configs"]["fitness_function_configs"])
         # self.central_note = int(central_note)
         # self.bpm = int(bpm)
         # self.num_compass = int(num_compass)
@@ -21,22 +31,12 @@ class AIHeroEVO:
         # self.scale = scale  # scale with 1 octave above and 1 octave below
         # self.chord_sequence = chord_sequence
         # self.fuse = 8
-        self.max_generations = config["evolutionary_algorithm_config"]["max_generations"]
-        self.pop_size = config["evolutionary_algorithm_config"]["population_size"]
-        self.k = config["evolutionary_algorithm_config"][
-            "tournament_percentage"]  # percentage of individuals that will participate of tournament
-        self.pc = config["evolutionary_algorithm_config"]["crossover_probability"]  # crossover probability
-        self.pm = config["evolutionary_algorithm_config"]["child_mutation_probability"]  # child mutation probability
-        self.pnm = config["evolutionary_algorithm_config"][
-            "note_change_probability"]  # probability of changing a note when a child is going on mutation
-        self.gan_service = GANService(config)
         # self.chord_note_prob = 0.05  # (initial population) probability of a note to be from the chord
         # self.next_note_range = 8  # (initial population) max distances (semitones) between two notes in sequence
         # self.interval_prob = 0.8 # percentage of interval for population generation
-        self.fitness_function = Fitness()
 
     def generate_melody(self, melody_specs):
-        genetic_algorithm_melody = self.genetic_algorithm(melody_specs)
+        genetic_algorithm_melody, fitness = self.genetic_algorithm(melody_specs)
         return genetic_algorithm_melody
 
     def genetic_algorithm(self, melody_specs):
@@ -48,14 +48,13 @@ class AIHeroEVO:
         pop = self.generate_population_with_gan(melody_specs)
 
         # generation loop
-        compass_notes = get_chord_notes(melody_specs)
+        chord_scaled_notes = get_chord_notes(melody_specs)
         for t in range(0, self.max_generations):
 
             # fitness calculation
             for j in range(0, self.pop_size):
-                fitness[j] = self.fitness_function.eval(pop[j, :, :], compass_notes)
+                fitness[j] = self.fitness_function.eval(pop[j, :, :], chord_scaled_notes)
 
-            # print("best fitness:", fitness[np.argsort(-fitness)[0]])
             best_fitness.append(fitness[np.argsort(-fitness)[0]])
             best_individual = pop[np.argsort(-fitness)[0]]
 
@@ -69,9 +68,10 @@ class AIHeroEVO:
                 children = self.crossover(parents, TIME_DIVISION)
 
                 # mutation: note flip
-                for idm in range(0, len(children)):
+                for idm in range(children.shape[0]):
                     if random() <= self.pm:
-                        children[idm] = self.mutate(children[idm])
+                        melody = self.gan_service.generate_melody(specs=melody_specs, num_melodies=1)
+                        children[idm, :, :] = melody[0, :, :, 0]  # todo: replace by another mutation method?
 
                 new_pop[idx:idx + 2] = children
 
@@ -149,9 +149,11 @@ class AIHeroEVO:
 
     def crossover(self, parents, total_notes):
         if random() <= self.pc:
-            cut_point = randrange(self.pulses_on_compass) * self.fuse  # the cutting point happens always in a pulse
-            child1 = np.append(parents[0][:cut_point], parents[1][cut_point:])
-            child2 = np.append(parents[1][:cut_point], parents[0][cut_point:])
+            on_beat_cut_point = randrange(int(TIME_DIVISION / 4), TIME_DIVISION, int(TIME_DIVISION / 4)) # the cutting point happens on a beat
+            child1 = parents[0, :, :]
+            child1[:, on_beat_cut_point:] = parents[1, :, on_beat_cut_point:]
+            child2 = parents[1, :, :]
+            child2[:, on_beat_cut_point:] = parents[0, :, on_beat_cut_point:]
             children = np.array([child1, child2])
         else:
             children = parents
@@ -159,10 +161,11 @@ class AIHeroEVO:
         return children
 
     def mutate(self, child):
-        for i in range(0, len(child)):
-            if child[i] != -1 and random() < self.pnm:
-                child[i] = child[i] - randrange(8) + 4
-        return child
+        return
+        # for i in range(0, len(child)):
+        #     if child[i] != -1 and random() < self.pnm:
+        #         child[i] = child[i] - randrange(8) + 4
+        # return child
 
 
 def get_chord_notes(melody_specs):

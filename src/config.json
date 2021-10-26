@@ -2,12 +2,45 @@
   "checkpoint_folder": "GAN/data/training_checkpoints",
   "fluidsynth_path": "../fluidsynth/FluidR3_GM.sf2",
   "verbose": true,
-  "evolutionary_algorithm_config": {
+  "evolutionary_algorithm_configs": {
     "population_size": 100,
-    "max_generations": 150,
+    "max_generations": 10,
     "tournament_percentage": 0.3,
     "crossover_probability": 0.5,
     "child_mutation_probability": 0.05,
-    "note_change_probability": 0.05
+    "note_change_probability": 0.05,
+    "fitness_function_configs": {
+      "scale":"minor_blues_scale",
+      "function_sets": [
+        {
+        "name": "notes_on_same_chord_key",
+        "weight": 10
+        },
+        {
+        "name": "notes_on_beat_rate",
+        "weight": 20
+        },
+        {
+        "name": "intervals_percentage",
+        "weight": 0
+        },
+        {
+        "name": "note_repetitions_rate",
+        "weight": 0
+        },
+        {
+        "name": "pitch_proximity",
+        "weight": 0
+        },
+        {
+        "name": "note_variety_rate",
+        "weight": 0
+        },
+        {
+        "name": "note_sequence_rate",
+        "weight": 0
+        }
+      ]
+    }
   }
 }

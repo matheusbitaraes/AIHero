@@ -43,3 +43,14 @@ class GANService:
             gan_map[part.value] = AIHeroGAN(part=part, checkpoint_folder=self._config['checkpoint_folder'],
                                             verbose=self._config["verbose"])
         return gan_map
+
+    def get_random_train_data(self, specs=None):
+        melodic_part = MelodicPart(specs["melodic_part"])
+        try:
+            gan = self.gans[melodic_part.value]
+            return gan.get_random_train_data()
+        except GanTrainingException as e:
+            print(f"Exception in GAN Service: Could not get GAN for part {melodic_part}: {e}")
+        except Exception as e:
+            print(f"exception in GAN Service: {e}")
+            print(traceback.format_exc())

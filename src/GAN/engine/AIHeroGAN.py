@@ -1,6 +1,8 @@
 import glob
 import os
+import random
 import time
+import traceback
 from datetime import date
 
 import imageio
@@ -10,7 +12,6 @@ import tensorflow as tf
 from IPython import display
 from tensorflow.keras import layers
 from tensorflow.python.ops.numpy_ops import np_config
-import traceback
 
 from src.GAN.data.GANTrainingData import GANTrainingData
 from src.utils.AIHeroEnums import MelodicPart
@@ -19,7 +20,8 @@ from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, TRAIN_DA
 
 class AIHeroGAN:
     def __init__(self, part=MelodicPart.X, checkpoint_folder='GAN/data/training_checkpoints', verbose=False):
-        self.part_type = part.value  # todo: fazer alguma verificação e validação para que o part seja sempre um valor do enum
+        # todo: fazer alguma verificação e validação para que o part seja sempre um valor do enum
+        self.part_type = part.value
 
         # training
         self.noise_dim = 100  # todo: experiment other values
@@ -31,8 +33,8 @@ class AIHeroGAN:
         self.training_data = GANTrainingData(melodic_part=part)
 
         # Private Variables
-        self.__trained = False
-        self.__verbose = verbose
+        self._trained = False
+        self._verbose = verbose
 
         self.evidence_dir = 'data/evidences/gifs'
         self.checkpoint_dir = f'{checkpoint_folder}/part_{self.part_type}'
@@ -69,13 +71,13 @@ class AIHeroGAN:
             print("no checkpoint found")
 
     def set_verbose(self, value):
-        self.__verbose = value
+        self._verbose = value
 
     def should_verbose(self):
-        return self.__verbose
+        return self._verbose
 
     def is_trained(self):
-        return self.__trained
+        return self._trained
 
     def make_generator_model(self):
         # TODO: entender melhor estes parametros
@@ -170,7 +172,6 @@ class AIHeroGAN:
     # This annotation causes the function to be "compiled".
     @tf.function
     def train_step(self, images):
-        # noise = tf.random.normal([self.BATCH_SIZE, self.noise_dim], mean=SCALED_NOTES_NUMBER/2, stddev=10)
         noise = tf.random.normal([self.BATCH_SIZE, self.noise_dim])
 
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
@@ -195,7 +196,6 @@ class AIHeroGAN:
         }
 
     def train(self, num_seeds=1, epochs=50, should_generate_gif=False):
-        # todo: melhorar essa definição do tamanho do seed
         self.num_examples_to_generate = num_seeds
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
@@ -233,7 +233,11 @@ class AIHeroGAN:
                 display.clear_output(wait=True)
                 self.generate_and_save_images(epochs)
                 self.generate_gif()
-                self.erase_temp_images()
+
+                # erase temporary images
+                for f in glob.glob('.temp/image*.png'):
+                    os.remove(f)
+
         except Exception as e:
             print(f"Failed training gan of type {self.part_type}: {e}")
             print(traceback.format_exc())
@@ -295,6 +299,9 @@ class AIHeroGAN:
             predictions = self.generator_model(self.seed, training=False)
         return predictions
 
-    def erase_temp_images(self):
-        for f in glob.glob('.temp/image*.png'):
-            os.remove(f)
+    def get_random_train_data(self, number=1):
+        train_data = self.training_data.get_as_matrix()
+        index = random.sample(range(train_data.shape[0]), number)[0]
+        output = np.zeros((1, train_data.shape[1], train_data.shape[2], train_data.shape[3]))
+        output[0:number, :, :, :] = train_data[index, :, :, :]
+        return output

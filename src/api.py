@@ -17,7 +17,7 @@ ai_hero_service = AIHeroService(config)
 def getMelodiesFromGANTrainData():
     bars = request.form
     print(bars)
-    aa = ai_hero_service.generate_compositions_with_train_data(bars)
+    aa = generate_compositions_with_train_data(bars)
     return True
 
 
