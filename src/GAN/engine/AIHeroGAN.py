@@ -257,7 +257,8 @@ class AIHeroGAN:
             a = b
             b = b + TIME_DIVISION
         plt.imshow(concat_data, cmap='Blues')
-        plt.axis([0, num_bars * TIME_DIVISION, SCALED_NOTES_RANGE[0], SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
+        plt.axis([0, num_bars * TIME_DIVISION, SCALED_NOTES_RANGE[0],
+                  SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
         plt.ylabel("MIDI Notes")
         plt.xlabel("Time Division")
         # plt.text(1, 90, f'Loss G: {results["generator_loss"]}, Loss D: {results["discriminator_loss"]}')
