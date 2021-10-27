@@ -19,7 +19,7 @@ from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, TRAIN_DA
 
 
 class AIHeroGAN:
-    def __init__(self, part=MelodicPart.X, checkpoint_folder='GAN/data/training_checkpoints', verbose=False):
+    def __init__(self, config, part=MelodicPart.X):
         # todo: fazer alguma verificação e validação para que o part seja sempre um valor do enum
         self.part_type = part.value
 
@@ -30,14 +30,14 @@ class AIHeroGAN:
         self.BATCH_SIZE = 25  # this will be subscribed
         self.BUFFER_PERCENTAGE = 0.2
 
-        self.training_data = GANTrainingData(melodic_part=part)
+        self.training_data = GANTrainingData(config, melodic_part=part)
 
         # Private Variables
         self._trained = False
-        self._verbose = verbose
+        self._verbose = config["verbose"]
 
-        self.evidence_dir = 'data/evidences/gifs'
-        self.checkpoint_dir = f'{checkpoint_folder}/part_{self.part_type}'
+        self.gifs_evidence_dir = config["generated_evidences_dir"]
+        self.checkpoint_dir = f'{config["checkpoint_folder"]}/part_{self.part_type}'
         self.checkpoint_prefix = os.path.join(self.checkpoint_dir, "ckpt")
 
         self.generator_model = self.make_generator_model()
@@ -270,7 +270,7 @@ class AIHeroGAN:
         #
         # display_image(epochs)
         today = date.today()
-        anim_file = f'{self.evidence_dir}/{self.part_type}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
+        anim_file = f'{self.gifs_evidence_dir}/{self.part_type}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
 
         with imageio.get_writer(anim_file, mode='I') as writer:
             filenames = glob.glob('.temp/image*.png')

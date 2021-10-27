@@ -40,8 +40,7 @@ class GANService:
     def build_gans(self):
         gan_map = {}
         for part in MelodicPart:
-            gan_map[part.value] = AIHeroGAN(part=part, checkpoint_folder=self._config['checkpoint_folder'],
-                                            verbose=self._config["verbose"])
+            gan_map[part.value] = AIHeroGAN(self._config, part=part)
         return gan_map
 
     def get_random_train_data(self, specs=None):

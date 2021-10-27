@@ -5,8 +5,9 @@ from glob import glob
 
 
 class GANTrainingData:
-    def __init__(self, melodic_part=MelodicPart.X, file_directory="data/train"):
+    def __init__(self, config, melodic_part=MelodicPart.X):
         self._ai_hero_data = AIHeroData()
+        file_directory = config["train_data_folder"]
         self._file_glob = glob(f"{file_directory}/part_{melodic_part.name}_*")
 
     def get_as_matrix(self):

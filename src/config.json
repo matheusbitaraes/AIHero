@@ -1,5 +1,7 @@
 {
   "checkpoint_folder": "GAN/data/training_checkpoints",
+  "train_data_folder": "GAN/data/train",
+  "generated_evidences_dir": "data/evidences",
   "fluidsynth_path": "../fluidsynth/FluidR3_GM.sf2",
   "verbose": true,
   "evolutionary_algorithm_configs": {
