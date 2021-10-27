@@ -24,7 +24,7 @@
         },
         {
         "name": "intervals_percentage",
-        "weight": 0
+        "weight": -10
         },
         {
         "name": "note_repetitions_rate",

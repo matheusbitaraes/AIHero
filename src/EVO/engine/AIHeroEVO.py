@@ -1,12 +1,9 @@
 from random import random, randrange
 
-import mingus.core.chords as chords
-import mingus.core.notes as notes
 import numpy as np
 from terminalplot import plot
 
 from src.EVO.engine.Fitness import Fitness
-# from src.EVO.resources.resources import
 from src.GAN.service.GANService import GANService
 from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER
 
@@ -49,12 +46,11 @@ class AIHeroEVO:
         pop = self.generate_population_with_gan(melody_specs)
 
         # generation loop
-        chord_scaled_notes = get_chord_notes(melody_specs)
         for t in range(0, self._max_generations):
 
             # fitness calculation
             for j in range(0, self._pop_size):
-                fitness[j] = self.fitness_function.eval(pop[j, :, :], chord_scaled_notes)
+                fitness[j] = self.fitness_function.eval(pop[j, :, :], melody_specs)
 
             best_fitness.append(fitness[np.argsort(-fitness)[0]])
             best_individual = pop[np.argsort(-fitness)[0]]
@@ -167,14 +163,3 @@ class AIHeroEVO:
             if child[i] != -1 and random() < self._pnm:
                 child[i] = child[i] - randrange(8) + 4
         return child
-
-
-def get_chord_notes(melody_specs):
-    chord = melody_specs["chord"]
-    key = melody_specs["key"]
-    note_list = chords.triad(chord, key)
-    note_numbers = []
-    for n in note_list:
-        note_int = notes.note_to_int(n)
-        note_numbers.append(int(note_int + SCALED_NOTES_NUMBER / 2))
-    return note_numbers

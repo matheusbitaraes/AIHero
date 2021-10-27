@@ -6,11 +6,12 @@ class Fitness:
         self.function_sets = config["function_sets"]
         self.scale = config["scale"]
 
-    def eval(self, note_sequence, chord_notes):
+    def eval(self, note_sequence, melody_specs):
         fitness = 0
         for function_set in self.function_sets:
             input_vars = {
-                "chord_notes": chord_notes,
+                "chord": melody_specs["chord"],
+                "key": melody_specs["key"],
                 "note_sequence": note_sequence,
                 "weight": function_set["weight"]
             }
