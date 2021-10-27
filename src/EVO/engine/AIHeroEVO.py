@@ -3,8 +3,6 @@ from random import random, randrange
 import mingus.core.chords as chords
 import mingus.core.notes as notes
 import numpy as np
-from terminalplot import plot
-
 
 from src.EVO.engine.Fitness import Fitness
 # from src.EVO.resources.resources import
@@ -33,12 +31,6 @@ class AIHeroEVO:
 
         genetic_algorithm_melody, fitness_array = self.genetic_algorithm(melody_specs)
 
-        if self._verbose:
-            print(f"Melody generated in {self._max_generations} generations, with best fitness: {fitness_array[-1]}")
-            print("--------------------------------------------------------------")
-            print("FITNESS GRAPH")
-            plot(range(len(fitness_array)), fitness_array)
-            print("--------------------------------------------------------------")
         return genetic_algorithm_melody
 
     def genetic_algorithm(self, melody_specs):
@@ -59,6 +51,12 @@ class AIHeroEVO:
 
             best_fitness.append(fitness[np.argsort(-fitness)[0]])
             best_individual = pop[np.argsort(-fitness)[0]]
+
+            if self._verbose:
+                print("--------------------------------------------------------------")
+                print("FITNESS GRAPH")
+                plot_live(range(len(best_fitness)), best_fitness)
+                print("--------------------------------------------------------------")
 
             idx = 0
             new_pop = pop * 0
@@ -179,3 +177,5 @@ def get_chord_notes(melody_specs):
         note_int = notes.note_to_int(n)
         note_numbers.append(int(note_int + SCALED_NOTES_NUMBER / 2))
     return note_numbers
+
+def plot_live(x, y):
