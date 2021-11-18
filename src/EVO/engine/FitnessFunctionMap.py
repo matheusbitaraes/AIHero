@@ -73,17 +73,37 @@ def intervals_percentage(input_values):
     weight = input_values["weight"]
     note_sequence = input_values["note_sequence"]
 
-    PERCENTAGE_BOUNDARIES = [0.2, 0.8]
+    PERCENTAGE_BOUNDARIES = [0.05, 0.6]
 
     note_sums = np.sum(note_sequence, 0)  # sum over y axis
 
     total_intervals = len(note_sums[note_sums == -1 * SCALED_NOTES_NUMBER])
     if total_intervals != 0:
         interval_percentage = total_intervals/TIME_DIVISION
-        normalized_perc = (interval_percentage - PERCENTAGE_BOUNDARIES[0]) /(PERCENTAGE_BOUNDARIES[1] - PERCENTAGE_BOUNDARIES[0])
-        return weight * min(0, max(1, normalized_perc))
+        normalized_value = (interval_percentage - PERCENTAGE_BOUNDARIES[0]) /(PERCENTAGE_BOUNDARIES[1] - PERCENTAGE_BOUNDARIES[0])
+        normalized_perc = max(0, min(1, normalized_value))
+        return weight * normalized_perc
     else:
-        return weight
+        return 0
+
+
+def note_variety_rate(input_values):
+    # input values
+    weight = input_values["weight"]
+    note_sequence = input_values["note_sequence"]
+
+    PERCENTAGE_BOUNDARIES = [0.05, 0.15]
+
+    note_sums = np.sum(note_sequence, 1)  # sum over x axis
+
+    total_rows_with_notes = len(note_sums[note_sums != -1 * TIME_DIVISION])
+    if total_rows_with_notes != 0:
+        note_variety_percentage = total_rows_with_notes/SCALED_NOTES_NUMBER
+        normalized_value = (note_variety_percentage - PERCENTAGE_BOUNDARIES[0]) /(PERCENTAGE_BOUNDARIES[1] - PERCENTAGE_BOUNDARIES[0])
+        normalized_perc = max(0, min(1, normalized_value))
+        return weight * normalized_perc
+    else:
+        return 0
 
 
 def note_repetitions_rate(input_values):

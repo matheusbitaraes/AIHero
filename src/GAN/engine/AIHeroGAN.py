@@ -287,7 +287,7 @@ class AIHeroGAN:
         melody = tf.Variable(predictions)
         for i in range(melody.shape[0]):
             melody[i, :, :, 0].assign(round(melody[i, :, :, 0]))
-        return melody.numpy()
+        return normalize_melody(melody.numpy())
 
     def generate_prediction(self, new_seed=False, size=1):
         # Notice `training` is set to False.
@@ -305,3 +305,8 @@ class AIHeroGAN:
         output = np.zeros((1, train_data.shape[1], train_data.shape[2], train_data.shape[3]))
         output[0:number, :, :, :] = train_data[index, :, :, :]
         return output
+
+
+def normalize_melody(melody):
+    melody[melody != 1] = -1
+    return melody

@@ -2,7 +2,7 @@ from glob import glob
 from unittest import TestCase
 
 from src.EVO.engine.FitnessFunctionMap import notes_on_same_chord_key, notes_on_beat_rate, intervals_percentage, \
-    note_repetitions_rate, pitch_proximity_rate
+    note_repetitions_rate, pitch_proximity_rate, note_variety_rate
 from src.data.AIHeroData import AIHeroData
 
 
@@ -52,6 +52,26 @@ class TestFitnessFunctions(TestCase):
     def test_intervals_percentage(self):
         type_name = "intervals_percentage"
         func = intervals_percentage
+        FITNESS_HIGH = [1, 1, 1]
+        FITNESS_LOW = [0, 0]
+        FITNESS_MEDIUM = [0.38095238095238093, 0.6333333333333333]
+        fixed_input_values = {
+            "weight": 1,
+            "chord": "C",
+            "key": "C"
+        }
+        self.assertEqual(
+            test_function(function=func, input_dict=fixed_input_values, file_path=glob(f"resources/{type_name}_high*")),
+            FITNESS_HIGH)
+        self.assertEqual(test_function(function=func, input_dict=fixed_input_values,
+                                       file_path=glob(f"resources/{type_name}_medium*")), FITNESS_MEDIUM)
+        self.assertEqual(
+            test_function(function=func, input_dict=fixed_input_values, file_path=glob(f"resources/{type_name}_low*")),
+            FITNESS_LOW)
+
+    def test_note_variety_rate(self):
+        type_name = "note_variety_rate"
+        func = note_variety_rate
         FITNESS_HIGH = [1, 1, 1]
         FITNESS_LOW = [0, 0]
         FITNESS_MEDIUM = [0.38095238095238093, 0.6333333333333333]

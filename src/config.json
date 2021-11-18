@@ -5,7 +5,7 @@
   "fluidsynth_path": "../fluidsynth/FluidR3_GM.sf2",
   "verbose": true,
   "evolutionary_algorithm_configs": {
-    "population_size": 100,
+    "population_size": 200,
     "max_generations": 100,
     "tournament_percentage": 0.3,
     "crossover_probability": 0.5,
@@ -16,15 +16,19 @@
       "function_sets": [
         {
         "name": "notes_on_same_chord_key",
-        "weight": 10
+        "weight": 1
         },
         {
         "name": "notes_on_beat_rate",
-        "weight": 20
+        "weight": 1
         },
         {
         "name": "intervals_percentage",
-        "weight": -10
+        "weight": -1
+        },
+        {
+        "name": "note_variety_rate",
+        "weight": 1
         },
         {
         "name": "note_repetitions_rate",
@@ -32,10 +36,6 @@
         },
         {
         "name": "pitch_proximity",
-        "weight": 0
-        },
-        {
-        "name": "note_variety_rate",
         "weight": 0
         },
         {
