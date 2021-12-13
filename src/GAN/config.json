@@ -2,5 +2,7 @@
   "checkpoint_folder": "data/training_checkpoints",
   "train_data_folder": "data/train",
   "generated_evidences_dir": "data/evidences/gifs",
-  "verbose": true
+  "verbose": true,
+  "use_checkpoint": true,
+  "data_augmentation_strategy_list": ["a", "b", "c"]
 }

@@ -3,12 +3,12 @@ import traceback
 
 import mingus.core.notes as notes
 import numpy as np
-import pypianoroll
 from matplotlib import pyplot as plt
 from mingus.containers import Bar, Note, Track, Composition, NoteContainer
 from mingus.midi import midi_file_in, midi_file_out
 
 from src.EVO.resources.resources import *
+from src.GAN.engine.augmentation.AugmentationEngine import AugmentationEngine
 from src.utils.AIHeroGlobals import MIDI_NOTES_NUMBER, TIME_DIVISION, CENTRAL_NOTE_NUMBER, SCALED_NOTES_RANGE, \
     SCALED_NOTES_NUMBER
 
@@ -39,7 +39,7 @@ class AIHeroData:
             try:
                 composition = midi_file_in.MIDI_to_Composition(file)
                 chord = get_chord_from_filename(file)
-                compositions.append(add_chord_to_composition(composition, chord))
+                compositions.append(self.add_chord_to_composition(composition, chord))
             except Exception as e:
                 print(f"error converting MIDI into mingus file: {e}")
                 print(traceback.format_exc())
@@ -108,7 +108,9 @@ class AIHeroData:
         self._spr_data = self.convert_mingus_composition(convert_into="spr")
         self._data = self.convert_mingus_composition(convert_into="data")
 
-    def set_mingus_compositions(self, compositions):
+    def set_mingus_compositions(self, compositions, chord_list=None):
+        if chord_list is not None:
+            self.chord_list = chord_list
         self._mingus_composition_list = compositions
         # self.export_as_midi()
         self._pr_data = self.convert_mingus_composition(convert_into="pr")
@@ -120,6 +122,19 @@ class AIHeroData:
         self._mingus_composition_list = self.revert_spr()
         self._pr_data = self.convert_mingus_composition(convert_into="pr")
         self._data = self.convert_mingus_composition(convert_into="data")
+
+    def set_spr_matrix(self, matrix, chord_list):
+        self.chord_list = chord_list
+        compositions = []
+        composition = []
+        tracks = []
+        bars = []
+        for i in range(0, matrix.shape[0]):
+            bars.append(matrix[i, :, :, 0])
+        tracks.append(bars)
+        composition.append(tracks)
+        compositions.append(composition)
+        self.set_spr(compositions)
 
     def sanitize(self):
         pr_data = self.get_pr()
@@ -338,6 +353,44 @@ class AIHeroData:
         self.set_mingus_compositions(new_compositions)
         self.revert_spr()
 
+    def split_into_train_test(self, train_test_ratio=.7):
+        all_data = self.get_spr_as_matrix()
+        chord_list = np.array(self.chord_list)
+        size = all_data.shape[0]
+        train_data_size = int(size * train_test_ratio)
+        random_order = np.random.permutation(size)
+        train_spr_data = all_data[random_order[0:train_data_size], :, :, :]
+        train_chords = chord_list[random_order[0:train_data_size]]
+        test_spr_data = all_data[random_order[train_data_size:], :, :, :]
+        test_chords = chord_list[random_order[train_data_size:]]
+
+        train_data = AIHeroData()
+        test_data = AIHeroData()
+        train_data.set_spr_matrix(train_spr_data, train_chords)
+        test_data.set_spr_matrix(test_spr_data, test_chords)
+
+        return train_data, test_data
+
+    def add_chord_to_composition(self, mingus_composition, chord):
+        composition = mingus_composition[0]
+        for track in composition.tracks:
+            for bar_list in track.bars:
+                bar_list.chord = chord
+                bar_list.key.key = chord
+                self.chord_list.append(chord)
+        return mingus_composition
+
+    def augment(self, strategies, augmentation_size):
+        engine = AugmentationEngine(strategies, augmentation_size=augmentation_size)
+        augmented_data = engine.augment(self.get_spr_as_matrix())
+        self.set_spr_matrix(augmented_data, chord_list=self.chord_list)
+
+    def replicate(self, final_size):
+        data = self.get_spr_as_matrix()
+        num_repeat = np.round(final_size/data.shape[0]) + 1
+        repeated_data = np.repeat(self.get_spr_as_matrix(), num_repeat, axis=0)
+        self.set_spr_matrix(repeated_data[0:final_size, :, :, :], chord_list=self.chord_list)
+
 
 def convert_name_into_number(name):
     return note_reference[name]
@@ -427,15 +480,6 @@ def get_octave_and_note(note):
 
 def is_empty(bar):
     return bar.min() == bar.max()
-
-
-def add_chord_to_composition(mingus_composition, chord):
-    composition = mingus_composition[0]
-    for track in composition.tracks:
-        for bar_list in track.bars:
-            bar_list.chord = chord
-            bar_list.key.key = chord
-    return mingus_composition
 
 
 def get_chord_from_filename(file):

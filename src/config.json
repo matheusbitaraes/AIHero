@@ -4,6 +4,7 @@
   "generated_evidences_dir": "data/evidences",
   "fluidsynth_path": "../fluidsynth/FluidR3_GM.sf2",
   "verbose": true,
+  "use_checkpoint": true,
   "evolutionary_algorithm_configs": {
     "population_size": 200,
     "max_generations": 100,

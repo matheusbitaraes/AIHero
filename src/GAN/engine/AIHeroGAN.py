@@ -35,6 +35,7 @@ class AIHeroGAN:
         # Private Variables
         self._trained = False
         self._verbose = config["verbose"]
+        self._should_use_checkpoint = config["use_checkpoint"]
 
         self.gifs_evidence_dir = config["generated_evidences_dir"]
         self.checkpoint_dir = f'{config["checkpoint_folder"]}/part_{self.part_type}'
@@ -54,10 +55,13 @@ class AIHeroGAN:
                                               generator=self.generator_model,
                                               discriminator=self.discriminator_model)
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
-        self.load_from_checkpoint()  # todo: pensar onde essa lógica do load checkpoint vai ficar
+
+        if self._should_use_checkpoint:
+            self.load_from_checkpoint()
 
     def load_from_checkpoint(self):
-        print(f"loading checkpoint for gan of part {self.part_type}...")
+        if self.should_verbose():
+            print(f"loading checkpoint for gan of part {self.part_type}...")
         load_status = self.checkpoint.restore(tf.train.latest_checkpoint(self.checkpoint_dir))
         try:
             load_status.assert_existing_objects_matched()
@@ -65,10 +69,11 @@ class AIHeroGAN:
         except:
             there_is_a_checkpoint = False
 
-        if there_is_a_checkpoint:
-            print("Checkpoint loaded!")
-        else:
-            print("no checkpoint found")
+        if self.should_verbose():
+            if there_is_a_checkpoint:
+                print("Checkpoint loaded!")
+            else:
+                print("no checkpoint found")
 
     def set_verbose(self, value):
         self._verbose = value
@@ -219,7 +224,7 @@ class AIHeroGAN:
                           f' Loss D: {results["discriminator_loss"]}')
 
                 # Save the model every 15 epochs
-                if (epoch + 1) % 15 == 0:
+                if self._should_use_checkpoint and (epoch + 1) % 15 == 0:
                     self.checkpoint.save(file_prefix=self.checkpoint_prefix)
 
                 if should_generate_gif:

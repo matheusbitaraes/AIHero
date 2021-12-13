@@ -1,0 +1,7 @@
+{
+  "checkpoint_folder": "data/training_checkpoints",
+  "use_checkpoint": false,
+  "train_data_folder": "../data/train",
+  "generated_evidences_dir": "data/evidences/gifs",
+  "verbose": false
+}
