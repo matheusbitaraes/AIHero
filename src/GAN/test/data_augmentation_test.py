@@ -14,7 +14,7 @@ from src.data.AIHeroData import AIHeroData
 NUM_SAMPLES = 50
 NUM_EPOCHS = 1
 TRAIN_TEST_RATIO = 0.7
-AUGMENTATION_SIZE = 2  # how many times each strategy should augment
+AUGMENTATION_SIZE = 1  # how many times each strategy should augment
 
 with open('test_config.json') as config_file:
     config = jload(config_file)
@@ -28,8 +28,7 @@ avg_time_b = np.zeros(NUM_SAMPLES)
 avg_time_c = np.zeros(NUM_SAMPLES)
 data = AIHeroData()
 
-# strategies = [TimeChangeStrategy(), OctaveChangeStrategy(), NoteJoinStrategy()]
-strategies = [OctaveChangeStrategy()]
+strategies = [OctaveChangeStrategy(), TimeChangeStrategy(), NoteJoinStrategy()]
 for i in range(0, NUM_SAMPLES):
     data.load_from_midi_files(glob(f"{config['train_data_folder']}/part*"))
     train_data, test_data = data.split_into_train_test(TRAIN_TEST_RATIO)
@@ -53,21 +52,21 @@ for i in range(0, NUM_SAMPLES):
     gan_a.training_data = GANTrainingData(config, data=train_data)
     t_start = time.time()
     gan_a.train(num_seeds=1, epochs=NUM_EPOCHS)
-    avg_time_a[i] = time.time()-t_start
+    avg_time_a[i] = time.time() - t_start
 
     print("Trainnig gan with augmented data...")
     gan_b = AIHeroGAN(config)
     gan_b.training_data = GANTrainingData(config, data=train_augmented_data)
     t_start = time.time()
     gan_b.train(num_seeds=1, epochs=NUM_EPOCHS)
-    avg_time_b[i] = time.time()-t_start
+    avg_time_b[i] = time.time() - t_start
 
     print("Trainnig gan with replicated data...")
     gan_c = AIHeroGAN(config)
     gan_c.training_data = GANTrainingData(config, data=train_replicated_data)
     t_start = time.time()
     gan_c.train(num_seeds=1, epochs=NUM_EPOCHS)
-    avg_time_c[i] = time.time()-t_start
+    avg_time_c[i] = time.time() - t_start
 
     test_data_matrix = test_data.get_spr_as_matrix()
     size = test_data_matrix.shape[0]

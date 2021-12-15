@@ -383,7 +383,8 @@ class AIHeroData:
     def augment(self, strategies, augmentation_size):
         engine = AugmentationEngine(strategies, augmentation_size=augmentation_size)
         augmented_data = engine.augment(self.get_spr_as_matrix())
-        self.set_spr_matrix(augmented_data, chord_list=self.chord_list)
+        total_size = len(strategies) * augmentation_size
+        self.set_spr_matrix(augmented_data, chord_list=np.tile(self.chord_list, total_size))
 
     def replicate(self, final_size):
         data = self.get_spr_as_matrix()

@@ -15,7 +15,7 @@ from tensorflow.python.ops.numpy_ops import np_config
 
 from src.GAN.data.GANTrainingData import GANTrainingData
 from src.utils.AIHeroEnums import MelodicPart
-from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, TRAIN_DATA_REPLICAS, SCALED_NOTES_RANGE
+from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
 
 
 class AIHeroGAN:
@@ -205,7 +205,7 @@ class AIHeroGAN:
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
             dataset = self.training_data.get_as_matrix()
-            dataset = np.repeat(dataset, TRAIN_DATA_REPLICAS, axis=0)  # DATASET AUGMENTATION
+            # dataset = np.repeat(dataset, TRAIN_DATA_REPLICAS, axis=0)  # DATASET AUGMENTATION
 
             BUFFER_SIZE = np.int(dataset.shape[0] * self.BUFFER_PERCENTAGE)
             self.BATCH_SIZE = np.int(dataset.shape[0] * self.BATCH_PERCENTAGE)
