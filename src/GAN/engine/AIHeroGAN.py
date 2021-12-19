@@ -14,6 +14,7 @@ from tensorflow.keras import layers
 from tensorflow.python.ops.numpy_ops import np_config
 
 from src.GAN.data.GANTrainingData import GANTrainingData
+from src.GAN.engine.augmentation.AugmentationEngine import AugmentationEngine
 from src.utils.AIHeroEnums import MelodicPart
 from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
 
@@ -24,21 +25,21 @@ class AIHeroGAN:
         self.part_type = part.value
 
         # training
-        self.noise_dim = 100  # todo: experiment other values
-        self.num_examples_to_generate = 1  # number of melodies to be generated
-        self.BATCH_PERCENTAGE = 0.1
-        self.BATCH_SIZE = 25  # this will be subscribed
-        self.BUFFER_PERCENTAGE = 0.2
+        self.noise_dim = config["training"]["noise_dim"]  # todo: experiment other values
+        self.num_examples_to_generate = config["training"]["num_examples_to_generate"]  # number of melodies to be generated
+        self.BATCH_PERCENTAGE = config["training"]["batch_percentage"]
+        self.BUFFER_PERCENTAGE = config["training"]["buffer_percentage"] # todo: pelo que entendi esse buffer é uma subdivisao de onde pega os batches...acho que não precisa disso por enquanto
+        self.BATCH_SIZE = None
 
         self.training_data = GANTrainingData(config, melodic_part=part)
 
         # Private Variables
         self._trained = False
         self._verbose = config["verbose"]
-        self._should_use_checkpoint = config["use_checkpoint"]
+        self._should_use_checkpoint = config["checkpoint"]["use_checkpoint"]
 
         self.gifs_evidence_dir = config["generated_evidences_dir"]
-        self.checkpoint_dir = f'{config["checkpoint_folder"]}/part_{self.part_type}'
+        self.checkpoint_dir = f'{config["checkpoint"]["checkpoint_folder"]}/part_{self.part_type}'
         self.checkpoint_prefix = os.path.join(self.checkpoint_dir, "ckpt")
 
         self.generator_model = self.make_generator_model()
@@ -85,23 +86,6 @@ class AIHeroGAN:
         return self._trained
 
     def make_generator_model(self):
-        # TODO: entender melhor estes parametros
-
-        # rnn com lstm
-        # fazer one hot encode
-        # ver proprio site do keras
-        # https://colah.github.io/posts/2015-08-Understanding-LSTMs/
-
-        # # Add an Embedding layer expecting input vocab of size 1000, and
-        # # output embedding dimension of size 64.
-        # model.add(layers.Embedding(input_length=32, input_dim=SCALED_NOTES_NUMBER + 1, output_dim=64))
-        #
-        # # Add a LSTM layer with 128 internal units.
-        # model.add(layers.LSTM(128))
-        #
-        # # Add a Dense layer with 10 units.
-        # model.add(layers.Dense(10))
-
         layer_1_finger = max(int(SCALED_NOTES_NUMBER / 2), 1)
         layer_1_fuse = max(int(TIME_DIVISION / 2), 1)
         layer_2_finger = max(int(SCALED_NOTES_NUMBER / 4), 1)
@@ -134,12 +118,6 @@ class AIHeroGAN:
         return model
 
     def make_discriminator_model(self):
-        # TODO: entender melhor!
-        # model.add(layers.Embedding(input_length=32, input_dim=SCALED_NOTES_NUMBER + 1, output_dim=64))
-        # model.add(layers.LSTM(128))
-        # # Add a Dense layer with 10 units.
-        # model.add(layers.Dense(10))
-
         model = tf.keras.Sequential()
         model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same',
                                 input_shape=[SCALED_NOTES_NUMBER, TIME_DIVISION, 1]))
@@ -205,7 +183,6 @@ class AIHeroGAN:
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
             dataset = self.training_data.get_as_matrix()
-            # dataset = np.repeat(dataset, TRAIN_DATA_REPLICAS, axis=0)  # DATASET AUGMENTATION
 
             BUFFER_SIZE = np.int(dataset.shape[0] * self.BUFFER_PERCENTAGE)
             self.BATCH_SIZE = np.int(dataset.shape[0] * self.BATCH_PERCENTAGE)
@@ -249,10 +226,6 @@ class AIHeroGAN:
 
     def generate_and_save_images(self, epoch, new_seed=False):
         predictions = self.generate_prediction(new_seed)
-        # fig = plt.figure(figsize=(4, 4))
-        #
-        # for i in range(predictions.shape[0]):
-        #     plt.imshow(predictions[i, :, :, 0], cmap='gray')
         num_bars = predictions.shape[0]
         concat_data = np.ndarray((SCALED_NOTES_NUMBER, TIME_DIVISION * num_bars))
         a = 0
@@ -270,10 +243,6 @@ class AIHeroGAN:
         plt.savefig('.temp/image_at_epoch_{:04d}.png'.format(epoch))
 
     def generate_gif(self):
-        # def display_image(epoch_no):
-        #     return PIL.Image.open('.temp/image_at_epoch_{:04d}.png'.format(epoch_no))
-        #
-        # display_image(epochs)
         today = date.today()
         anim_file = f'{self.gifs_evidence_dir}/{self.part_type}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
 

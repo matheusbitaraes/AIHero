@@ -380,11 +380,10 @@ class AIHeroData:
                 self.chord_list.append(chord)
         return mingus_composition
 
-    def augment(self, strategies, augmentation_size):
-        engine = AugmentationEngine(strategies, augmentation_size=augmentation_size)
+    def augment(self, engine):
         augmented_data = engine.augment(self.get_spr_as_matrix())
-        total_size = len(strategies) * augmentation_size
-        self.set_spr_matrix(augmented_data, chord_list=np.tile(self.chord_list, total_size))
+        total_size = augmented_data.shape[0]/len(self.chord_list)
+        self.set_spr_matrix(augmented_data, chord_list=np.tile(self.chord_list, int(total_size)))
 
     def replicate(self, final_size):
         data = self.get_spr_as_matrix()

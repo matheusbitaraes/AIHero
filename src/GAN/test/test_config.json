@@ -1,7 +1,25 @@
 {
-  "checkpoint_folder": "data/training_checkpoints",
-  "use_checkpoint": false,
-  "train_data_folder": "../data/train",
+
   "generated_evidences_dir": "data/evidences/gifs",
-  "verbose": false
+  "verbose": true,
+  "checkpoint": {
+    "use_checkpoint": false,
+    "checkpoint_folder": "data/training_checkpoints"
+  },
+  "training": {
+    "train_data_folder": "../data/train",
+    "noise_dim": 100,
+    "num_examples_to_generate": 1,
+    "batch_percentage": 0.2,
+    "buffer_percentage": 1
+  },
+  "data_augmentation": {
+    "enabled": true,
+    "data_augmentation_strategy_pipeline": [
+      {"method":"TimeChangeStrategy", "factor": 5},
+      {"method":"NoteJoinStrategy", "factor": 2},
+      {"method":"OctaveChangeStrategy", "factor": 2}
+    ],
+    "augmentation_factor": 10
+  }
 }

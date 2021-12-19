@@ -11,4 +11,4 @@ gan_service = GANService(config)
 
 # part = MelodicPart.Y
 # gan_service.train_gan(part=part.value, epochs=200, should_generate_gif=True)
-gan_service.train_gans(num_seeds=4, epochs=5, should_generate_gif=True)
+gan_service.train_gans(num_seeds=4, epochs=30, should_generate_gif=True)

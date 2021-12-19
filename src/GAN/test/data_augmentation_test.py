@@ -7,14 +7,16 @@ import numpy as np
 
 from src.GAN.data.GANTrainingData import GANTrainingData
 from src.GAN.engine.AIHeroGAN import AIHeroGAN
-from src.GAN.engine.augmentation.AugmentationStrategies import TimeChangeStrategy, OctaveChangeStrategy, \
-    NoteJoinStrategy
 from src.data.AIHeroData import AIHeroData
 
-NUM_SAMPLES = 50
-NUM_EPOCHS = 1
-TRAIN_TEST_RATIO = 0.7
-AUGMENTATION_SIZE = 1  # how many times each strategy should augment
+NUM_SAMPLES = 30
+TRAIN_TEST_RATIO = 0.99  # leave-one-out
+
+NUM_EPOCHS = 50  # todo: passar isso pra uma config tbm
+
+# todo implementar leave-one-out, estrategia para estimar generalização - ok
+# todo modificar data augmentations que expandam mais o dataset
+# todo rever todo o treinamento, batch size e essas coisas para que fique show
 
 with open('test_config.json') as config_file:
     config = jload(config_file)
@@ -28,42 +30,35 @@ avg_time_b = np.zeros(NUM_SAMPLES)
 avg_time_c = np.zeros(NUM_SAMPLES)
 data = AIHeroData()
 
-strategies = [OctaveChangeStrategy(), TimeChangeStrategy(), NoteJoinStrategy()]
 for i in range(0, NUM_SAMPLES):
-    data.load_from_midi_files(glob(f"{config['train_data_folder']}/part*"))
+    data.load_from_midi_files(glob(f"{config['training']['train_data_folder']}/part*"))
     train_data, test_data = data.split_into_train_test(TRAIN_TEST_RATIO)
 
-    # Create augmented data
-    train_augmented_data = AIHeroData()
-    train_augmented_data.set_mingus_compositions(train_data.get_mingus_compositions(), chord_list=train_data.chord_list)
-    train_augmented_data.augment(strategies, AUGMENTATION_SIZE)
-
-    # Create replica data
-    d = train_augmented_data.get_spr_as_matrix()
-    augmented_data_size = d.shape[0]
-    train_replicated_data = AIHeroData()
-    train_replicated_data.set_mingus_compositions(train_data.get_mingus_compositions(),
-                                                  chord_list=train_data.chord_list)
-    train_replicated_data.replicate(final_size=augmented_data_size)
-
     # generate and train gans
+    print(f"Test data size: {test_data.get_spr_as_matrix().shape[0]}")
     print("Trainnig gan with test data...")
     gan_a = AIHeroGAN(config)
     gan_a.training_data = GANTrainingData(config, data=train_data)
+    print(f"Training data shape: {gan_a.training_data.get_as_matrix().shape}")
     t_start = time.time()
     gan_a.train(num_seeds=1, epochs=NUM_EPOCHS)
     avg_time_a[i] = time.time() - t_start
 
     print("Trainnig gan with augmented data...")
     gan_b = AIHeroGAN(config)
-    gan_b.training_data = GANTrainingData(config, data=train_augmented_data)
+    gan_b.training_data = GANTrainingData(config, data=train_data)
+    gan_b.training_data.augment()
+    print(f"Augmented data shape: {gan_a.training_data.get_as_matrix().shape}")
     t_start = time.time()
     gan_b.train(num_seeds=1, epochs=NUM_EPOCHS)
     avg_time_b[i] = time.time() - t_start
 
     print("Trainnig gan with replicated data...")
     gan_c = AIHeroGAN(config)
-    gan_c.training_data = GANTrainingData(config, data=train_replicated_data)
+    gan_c.training_data = GANTrainingData(config, data=train_data)
+    augmented_data_size = gan_b.training_data.get_as_matrix().shape[0]
+    gan_c.training_data.replicate(final_size=augmented_data_size)
+    print(f"Replicated data shape: {gan_a.training_data.get_as_matrix().shape}")
     t_start = time.time()
     gan_c.train(num_seeds=1, epochs=NUM_EPOCHS)
     avg_time_c[i] = time.time() - t_start
