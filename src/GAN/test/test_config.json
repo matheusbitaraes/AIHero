@@ -7,9 +7,10 @@
     "checkpoint_folder": "data/training_checkpoints"
   },
   "training": {
+    "num_examples_to_generate": 1,
+    "num_epochs": 30,
     "train_data_folder": "../data/train",
     "noise_dim": 100,
-    "num_examples_to_generate": 1,
     "batch_percentage": 0.2,
     "buffer_percentage": 1
   },

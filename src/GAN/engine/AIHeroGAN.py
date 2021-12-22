@@ -14,7 +14,6 @@ from tensorflow.keras import layers
 from tensorflow.python.ops.numpy_ops import np_config
 
 from src.GAN.data.GANTrainingData import GANTrainingData
-from src.GAN.engine.augmentation.AugmentationEngine import AugmentationEngine
 from src.utils.AIHeroEnums import MelodicPart
 from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
 
@@ -30,6 +29,7 @@ class AIHeroGAN:
         self.BATCH_PERCENTAGE = config["training"]["batch_percentage"]
         self.BUFFER_PERCENTAGE = config["training"]["buffer_percentage"] # todo: pelo que entendi esse buffer é uma subdivisao de onde pega os batches...acho que não precisa disso por enquanto
         self.BATCH_SIZE = None
+        self.num_epochs = config["training"]["num_epochs"]
 
         self.training_data = GANTrainingData(config, melodic_part=part)
 
@@ -178,8 +178,7 @@ class AIHeroGAN:
             "generator_loss": gen_loss
         }
 
-    def train(self, num_seeds=1, epochs=50, should_generate_gif=False):
-        self.num_examples_to_generate = num_seeds
+    def train(self, should_generate_gif=False):
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
             dataset = self.training_data.get_as_matrix()
@@ -188,7 +187,7 @@ class AIHeroGAN:
             self.BATCH_SIZE = np.int(dataset.shape[0] * self.BATCH_PERCENTAGE)
             train_dataset = tf.data.Dataset.from_tensor_slices(dataset).shuffle(BUFFER_SIZE).batch(self.BATCH_SIZE)
 
-            for epoch in range(epochs):
+            for epoch in range(self.num_epochs):
                 start = time.time()
                 results = None
                 for melody_batch in train_dataset:
@@ -213,7 +212,7 @@ class AIHeroGAN:
             # Generate after the final epoch
             if should_generate_gif:
                 display.clear_output(wait=True)
-                self.generate_and_save_images(epochs)
+                self.generate_and_save_images(self.num_epochs)
                 self.generate_gif()
 
                 # erase temporary images
