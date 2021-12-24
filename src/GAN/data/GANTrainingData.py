@@ -41,3 +41,7 @@ class GANTrainingData:
 
     def replicate(self, final_size):
         self._ai_hero_data.replicate(final_size)
+
+    def print_on_terminal(self):
+        self._ai_hero_data.print_on_terminal()
+        pass

@@ -88,15 +88,15 @@ api_input = [
 # Acessa módulo AIHERO pedindo a melodia especificada
 ai_hero_service = AIHeroService(config)
 ai_hero_data_test = ai_hero_service.generate_compositions_with_train_data(api_input)
-ai_hero_data_test.append_base_track(midi_file="resources/super_simple_base.mid")
+ai_hero_data_test.append_base_track(midi_file="resources/blues_base.mid")
 ai_hero_data_test.export_as_midi(file_name="resources/exported_melody_test")
 
-ai_hero_data = ai_hero_service.generate_GAN_compositions(api_input)
-ai_hero_data.append_base_track(midi_file="resources/super_simple_base.mid")
-ai_hero_data.export_as_midi(file_name="resources/exported_melody_gan")
-
-ai_hero_data = ai_hero_service.generate_compositions(api_input)
-ai_hero_data.export_spr_as_image(file_name="resources/exported_image")
-ai_hero_data.append_base_track(midi_file="resources/blues_base.mid")
-ai_hero_data.export_as_midi(file_name="resources/exported_melody_evo")
+# ai_hero_data = ai_hero_service.generate_GAN_compositions(api_input)
+# ai_hero_data.append_base_track(midi_file="resources/super_simple_base.mid")
+# ai_hero_data.export_as_midi(file_name="resources/exported_melody_gan")
+#
+# ai_hero_data = ai_hero_service.generate_compositions(api_input)
+# ai_hero_data.export_spr_as_image(file_name="resources/exported_image")
+# ai_hero_data.append_base_track(midi_file="resources/blues_base.mid")
+# ai_hero_data.export_as_midi(file_name="resources/exported_melody_evo")
 

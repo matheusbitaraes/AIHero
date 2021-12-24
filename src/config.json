@@ -58,7 +58,7 @@
     "buffer_percentage": 1
   },
   "data_augmentation": {
-    "enabled": true,
+    "enabled": false,
     "data_augmentation_strategy_pipeline": [
       {"method":"TimeChangeStrategy", "factor": 5},
       {"method":"NoteJoinStrategy", "factor": 2},

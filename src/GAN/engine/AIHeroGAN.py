@@ -60,6 +60,10 @@ class AIHeroGAN:
         if self._should_use_checkpoint:
             self.load_from_checkpoint()
 
+        if self._verbose:
+            print(f"Train data for {part.name}({part.value}):")
+            self.training_data.print_on_terminal()
+
     def load_from_checkpoint(self):
         if self.should_verbose():
             print(f"loading checkpoint for gan of part {self.part_type}...")

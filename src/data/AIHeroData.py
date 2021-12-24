@@ -204,22 +204,6 @@ class AIHeroData:
                     c.add_track(t)
             composition_tuple = (c, self.bpm)
             compositions.append(composition_tuple)
-        # if convert_into == "pr":
-        #     for composition in data:
-        #         composition_converted = []
-        #         for tracks in composition:
-        #             tracks_converted = []
-        #             for bars in tracks:
-        #                 bars_converted = []
-        #                 for bar in bars:
-        #                     pr = -1 * np.ones((MIDI_NOTES_NUMBER, len(bar)))
-        #                     for i in range(0, len(bar)):
-        #                         if bar[i] != -1:
-        #                             pr[int(bar[i]), i] = 1
-        #                     bars_converted.append(pr)
-        #                 tracks_converted.append(bars_converted)
-        #             composition_converted.append(tracks_converted)
-        #         compositions.append(composition_converted)
         return compositions
 
     def revert_pr(self):
@@ -275,23 +259,23 @@ class AIHeroData:
                         b.key.name = chord
                         i = 0
                         while i < matrix.shape[1]:
-                            notes_matrix = np.where(matrix[:, i] > 0)
+                            b.place_rest(TIME_DIVISION)
+                            notes_matrix = np.where(matrix[:, i] > 0)[0]
                             there_is_note = False
                             note_duration = 1
                             n = NoteContainer()
                             n.empty()
-                            for note in notes_matrix[0]:
+                            for note in notes_matrix:
                                 octave, note_int = revert_spr_note(note, chord)
                                 # print(f"place note {note}, {note_int}, {notes.int_to_note(note_int)} in fuse {i}")
                                 new_note = Note(notes.int_to_note(note_int), octave=octave, velocity=90)
                                 n.add_notes(new_note)
                                 there_is_note = True
+
                             if there_is_note:
-                                # print(f"place notes {n}, with duration {TIME_DIVISION / note_duration}")
-                                b.place_notes(n, TIME_DIVISION / note_duration)
-                            else:
-                                # print(f"place rest, with duration {TIME_DIVISION / note_duration}")
-                                b.place_rest(TIME_DIVISION / note_duration)
+                                b.remove_last_entry()
+                                b.place_notes(n, TIME_DIVISION)
+
                             i += 1
                         b = unite_notes(b)
                         t.add_bar(b)
@@ -330,7 +314,8 @@ class AIHeroData:
             a = b
             b = b + TIME_DIVISION
         plt.imshow(concat_data, cmap='Blues')
-        plt.axis([0, num_bars * TIME_DIVISION, SCALED_NOTES_RANGE[0], SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
+        plt.axis([0, num_bars * TIME_DIVISION, SCALED_NOTES_RANGE[0],
+                  SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
         plt.ylabel("MIDI Notes")
         plt.xlabel("Time Division")
         plt.title(title)
@@ -382,14 +367,36 @@ class AIHeroData:
 
     def augment(self, engine):
         augmented_data = engine.augment(self.get_spr_as_matrix())
-        total_size = augmented_data.shape[0]/len(self.chord_list)
+        total_size = augmented_data.shape[0] / len(self.chord_list)
         self.set_spr_matrix(augmented_data, chord_list=np.tile(self.chord_list, int(total_size)))
 
     def replicate(self, final_size):
         data = self.get_spr_as_matrix()
-        num_repeat = np.round(final_size/data.shape[0]) + 1
+        num_repeat = np.round(final_size / data.shape[0]) + 1
         repeated_data = np.repeat(self.get_spr_as_matrix(), num_repeat, axis=0)
         self.set_spr_matrix(repeated_data[0:final_size, :, :, :], chord_list=self.chord_list)
+
+    def print_on_terminal(self):
+        data = self.get_spr_as_matrix()
+        # all_data = data.reshape([SCALED_NOTES_NUMBER, TIME_DIVISION * data.shape[0], data.shape[3]])
+        for bar_id in range(data.shape[0]):
+            print("\n")
+            bar = data[bar_id, :, :, :]
+            for i in range(bar.shape[0]-1, 0, -1):
+                row = bar[i, :, 0]
+                str_row = ""
+                for j in range(len(row)):
+                    if j % TIME_DIVISION == 0:
+                        str_row += "|"
+                    if j % (TIME_DIVISION / 4) == 0:
+                        str_row += "."
+                    if row[j] == 1:
+                        str_val = "-"
+                    else:
+                        str_val = " "
+                    str_row += str_val
+                print(f"{str_row}")
+        pass
 
 
 def convert_name_into_number(name):
@@ -433,13 +440,13 @@ def convert_bar_to_spr(bar):  # bar = [current beat, duration, notes]
                 midi_note = note_number + note_octave_factor - key_number - central_note + normalization_factor
                 current_beat = note_container[0]
                 duration = note_container[1]
-                begin_at = int(TIME_DIVISION * current_beat)
-                num_time_steps = int(TIME_DIVISION / duration)
+                begin_at = int(np.round(TIME_DIVISION * current_beat))
+                num_time_steps = max(1, int(np.round(TIME_DIVISION / duration)))
                 # print(f" begin: {begin_at}\n end: {begin_at + num_fuses - 1}\n bar: {bar.bar} \n container: {note_container}\n conv_notes:{converted_notes}")
                 end_at = min(begin_at + num_time_steps, TIME_DIVISION)
                 if SCALED_NOTES_RANGE[1] > midi_note >= SCALED_NOTES_RANGE[0]:
                     converted_notes[midi_note, range(begin_at, end_at)] = 1
-
+    converted_notes[12, 0] = 1
     return converted_notes
 
 
@@ -523,8 +530,8 @@ def convert_mido_to_piano_roll(mido_data):
             if not bar.is_meta:
                 note = bar.note
                 if bar.type == 'note_on':
-                    print(f'note_on {note} on {time}, {time/total_ticks} ticks')
+                    print(f'note_on {note} on {time}, {time / total_ticks} ticks')
                 elif bar.type == 'note_off':
-                    print(f'note_off {note} on {time/total_ticks} ticks')
+                    print(f'note_off {note} on {time / total_ticks} ticks')
 
     return composition
