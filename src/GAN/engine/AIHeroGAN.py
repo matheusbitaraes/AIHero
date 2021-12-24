@@ -27,7 +27,7 @@ class AIHeroGAN:
         self.noise_dim = config["training"]["noise_dim"]  # todo: experiment other values
         self.num_examples_to_generate = config["training"]["num_examples_to_generate"]  # number of melodies to be generated
         self.BATCH_PERCENTAGE = config["training"]["batch_percentage"]
-        self.BUFFER_PERCENTAGE = config["training"]["buffer_percentage"] # todo: pelo que entendi esse buffer é uma subdivisao de onde pega os batches...acho que não precisa disso por enquanto
+        self.BUFFER_PERCENTAGE = config["training"]["buffer_percentage"]
         self.BATCH_SIZE = None
         self.num_epochs = config["training"]["num_epochs"]
 

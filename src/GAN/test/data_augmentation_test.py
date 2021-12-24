@@ -1,5 +1,6 @@
 # script for testing the effect of using data augmentation strategies for enhancing test
 import time
+from datetime import date
 from glob import glob
 from json import load as jload
 
@@ -9,10 +10,8 @@ from src.GAN.data.GANTrainingData import GANTrainingData
 from src.GAN.engine.AIHeroGAN import AIHeroGAN
 from src.data.AIHeroData import AIHeroData
 
-NUM_SAMPLES = 30
-TRAIN_TEST_RATIO = 0.99  # leave-one-out
-
-NUM_EPOCHS = 50  # todo: passar isso pra uma config tbm
+NUM_SAMPLES = 3
+TRAIN_TEST_RATIO = 0.8 # leave-one-out
 
 # todo implementar leave-one-out, estrategia para estimar generalização - ok
 # todo modificar data augmentations que expandam mais o dataset
@@ -30,6 +29,11 @@ avg_time_b = np.zeros(NUM_SAMPLES)
 avg_time_c = np.zeros(NUM_SAMPLES)
 data = AIHeroData()
 
+epoch_time_sec = 25
+augmentation_time_sec = 3
+one_iteration_time = (config['training']['num_epochs'] * epoch_time_sec + augmentation_time_sec) * 2
+duration_estimate = one_iteration_time * NUM_SAMPLES / 3600
+print(f"This is probably going to take {duration_estimate} hours")
 for i in range(0, NUM_SAMPLES):
     data.load_from_midi_files(glob(f"{config['training']['train_data_folder']}/part*"))
     train_data, test_data = data.split_into_train_test(TRAIN_TEST_RATIO)
@@ -37,30 +41,32 @@ for i in range(0, NUM_SAMPLES):
     # generate and train gans
     print(f"Test data size: {test_data.get_spr_as_matrix().shape[0]}")
     print("Trainnig gan with test data...")
+    config["data_augmentation"]["enabled"] = False  # disable for this test
     gan_a = AIHeroGAN(config)
     gan_a.training_data = GANTrainingData(config, data=train_data)
     print(f"Training data shape: {gan_a.training_data.get_as_matrix().shape}")
     t_start = time.time()
-    gan_a.train(num_seeds=1, epochs=NUM_EPOCHS)
+    gan_a.train()
     avg_time_a[i] = time.time() - t_start
 
     print("Trainnig gan with augmented data...")
     gan_b = AIHeroGAN(config)
+    config["data_augmentation"]["enabled"] = True  # enable for this test
     gan_b.training_data = GANTrainingData(config, data=train_data)
-    gan_b.training_data.augment()
     print(f"Augmented data shape: {gan_a.training_data.get_as_matrix().shape}")
     t_start = time.time()
-    gan_b.train(num_seeds=1, epochs=NUM_EPOCHS)
+    gan_b.train()
     avg_time_b[i] = time.time() - t_start
 
     print("Trainnig gan with replicated data...")
+    config["data_augmentation"]["enabled"] = False  # disable for this test
     gan_c = AIHeroGAN(config)
     gan_c.training_data = GANTrainingData(config, data=train_data)
     augmented_data_size = gan_b.training_data.get_as_matrix().shape[0]
     gan_c.training_data.replicate(final_size=augmented_data_size)
     print(f"Replicated data shape: {gan_a.training_data.get_as_matrix().shape}")
     t_start = time.time()
-    gan_c.train(num_seeds=1, epochs=NUM_EPOCHS)
+    gan_c.train()
     avg_time_c[i] = time.time() - t_start
 
     test_data_matrix = test_data.get_spr_as_matrix()
@@ -97,4 +103,6 @@ b_time.insert(0, "augmented_time")
 c_time = avg_time_c.tolist()
 c_time.insert(0, "replicated_time")
 
-np.savetxt('scores.csv', [p for p in zip(a_acc, a_time, b_acc, b_time, c_acc, c_time)], delimiter=';', fmt='%s')
+today = date.today()
+filename = f'result_{today.strftime("%Y%m%d")}_{time.time_ns()}'
+np.savetxt(f'{filename}.csv', [p for p in zip(a_acc, a_time, b_acc, b_time, c_acc, c_time)], delimiter=';', fmt='%s')
