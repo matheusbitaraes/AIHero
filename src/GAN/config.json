@@ -2,7 +2,7 @@
   "generated_evidences_dir": "data/evidences/gifs",
   "verbose": true,
   "checkpoint": {
-    "use_checkpoint": true,
+    "use_checkpoint": false,
     "checkpoint_folder": "data/training_checkpoints"
   },
   "training": {
@@ -15,10 +15,9 @@
   },
   "data_augmentation": {
     "enabled": true,
-    "replication_factor": 50,
+    "replication_factor": 1,
     "data_augmentation_strategy_pipeline": [
-      {"method":"TimeChangeStrategy", "factor": 1},
-      {"method":"NoteJoinStrategy", "factor": 1},
+      {"method":"TimeChangeStrategy", "factor": 10},
       {"method":"OctaveChangeStrategy", "factor": 1}
     ]
   }
