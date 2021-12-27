@@ -14,53 +14,6 @@ class NoteJoinStrategy:  # join same notes in sequence. If there is none, duplic
                 matrix[i, cols] = 1
         return matrix
 
-
-class OctaveChangeStrategy:  # move 1 octave up or down, if possible
-    def apply(self, matrix, up_or_down=None):
-        if up_or_down is None:
-            up_or_down = np.sign(np.random.rand() - 0.5)
-
-        success, transposed_matrix = transpose_octave(matrix, up_or_down)
-        if not success:
-            success, transposed_matrix = transpose_octave(matrix, -up_or_down)
-
-        return transposed_matrix
-
-
-class TimeChangeStrategy:  # change duration of a random note, between a stablished note size
-    def __init__(self):
-        self._change_probability = 0.3
-        fuse = TIME_DIVISION/32
-        self._note_change_scale = int(2 * fuse)
-        self._time_lower_bound = int(1 * fuse)
-        self._time_upper_bound = int(8 * fuse)
-
-    def apply(self, matrix):
-        empty_note_row = TIME_DIVISION * -1
-        rows_with_note = np.where(np.sum(matrix, 1) != empty_note_row)[0]
-        for i in rows_with_note:
-            if np.random.rand() <= self._change_probability:
-                self.change_note_time(matrix[i, :])
-        return matrix
-
-    def change_note_time(self, row):
-        incr_or_decr = np.sign(np.random.rand() - 0.5)
-        note_on = np.where(row == 1)[0]
-        intervals = get_intervals(note_on)
-        relevant_intervals = np.where(intervals < -1)[0]
-        if len(relevant_intervals) > 0:
-            inter = np.random.choice(relevant_intervals)
-            note_off_id = note_on[inter]
-            note_on_id = note_on[0]
-            for id in range(inter-1, 0, -1):
-                if intervals[id] != -1:
-                    note_on_id = note_on[id]
-            time_delta = np.random.choice(range(self._time_lower_bound, self._time_upper_bound, self._note_change_scale))
-            new_note_off_id = max(0, int(note_off_id + incr_or_decr*time_delta))
-            row[note_on_id:note_off_id + 1] = -1
-            row[note_on_id:new_note_off_id] = 1
-
-
 class NoteSplitStrategy:  # Split large notes in sequence
     def apply(self, matrix):
         return matrix

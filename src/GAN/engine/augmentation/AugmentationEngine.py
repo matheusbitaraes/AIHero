@@ -1,7 +1,8 @@
 import numpy as np
 
-from src.GAN.engine.augmentation.AugmentationStrategies import NoteJoinStrategy, TimeChangeStrategy, \
-    OctaveChangeStrategy
+from src.GAN.engine.augmentation.NoteJoinStrategy import NoteJoinStrategy
+from src.GAN.engine.augmentation.OctaveChangeStrategy import OctaveChangeStrategy
+from src.GAN.engine.augmentation.TimeChangeStrategy import TimeChangeStrategy
 from src.utils.AIHeroGlobals import SCALED_NOTES_NUMBER, TIME_DIVISION
 
 

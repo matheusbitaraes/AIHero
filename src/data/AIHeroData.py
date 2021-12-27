@@ -8,7 +8,6 @@ from mingus.containers import Bar, Note, Track, Composition, NoteContainer
 from mingus.midi import midi_file_in, midi_file_out
 
 from src.EVO.resources.resources import *
-from src.GAN.engine.augmentation.AugmentationEngine import AugmentationEngine
 from src.utils.AIHeroGlobals import MIDI_NOTES_NUMBER, TIME_DIVISION, CENTRAL_NOTE_NUMBER, SCALED_NOTES_RANGE, \
     SCALED_NOTES_NUMBER
 
@@ -17,20 +16,20 @@ class AIHeroData:
     def __init__(self, data=None, mingus_composition_data=None, pr=None):
         # AIHeroData is a list of composition. Each composition has tracks. Each track has bars. Each bar has Notes
         self.chord_list = []
-        self._data = None
+        # self._data = None
         self._mingus_composition_list = None  # list of mingus Composition() object
-        self._pr_data = None
+        # self._pr_data = None
         self._spr_data = None
         self.bpm = None
 
-        if data is not None:
-            self.set_data(data)
+        # if data is not None:
+        #     self.set_data(data)
 
         if mingus_composition_data is not None:
             self.set_data(mingus_composition_data)
 
-        if pr is not None:
-            self.set_data(pr)
+        # if pr is not None:
+        #     self.set_data(pr)
 
     def load_from_midi_files(self, train_files):
         # convert midi data into the used class
@@ -96,32 +95,32 @@ class AIHeroData:
                         i = i + 1
         return np.reshape(data_list, (i, SCALED_NOTES_NUMBER, TIME_DIVISION, 1))
 
-    def set_data(self, data):
-        self._data = data
-        self._mingus_composition_list = self.revert_data()
-        self._pr_data = self.convert_mingus_composition(convert_into="pr")
-        self._spr_data = self.convert_mingus_composition(convert_into="spr")
+    # def set_data(self, data):
+    #     self._data = data
+    #     self._mingus_composition_list = self.revert_data()
+    #     self._pr_data = self.convert_mingus_composition(convert_into="pr")
+    #     self._spr_data = self.convert_mingus_composition(convert_into="spr")
 
-    def set_pr(self, composition):
-        self._pr_data = composition
-        self._mingus_composition_list = self.revert_pr()
-        self._spr_data = self.convert_mingus_composition(convert_into="spr")
-        self._data = self.convert_mingus_composition(convert_into="data")
+    # def set_pr(self, composition):
+    #     # self._pr_data = composition
+    #     self._mingus_composition_list = self.revert_pr()
+    #     self._spr_data = self.convert_mingus_composition(convert_into="spr")
+    #     self._data = self.convert_mingus_composition(convert_into="data")
 
     def set_mingus_compositions(self, compositions, chord_list=None):
         if chord_list is not None:
             self.chord_list = chord_list
         self._mingus_composition_list = compositions
         # self.export_as_midi()
-        self._pr_data = self.convert_mingus_composition(convert_into="pr")
+        # self._pr_data = self.convert_mingus_composition(convert_into="pr")
         self._spr_data = self.convert_mingus_composition(convert_into="spr")
-        self._data = self.convert_mingus_composition(convert_into="data")
+        # self._data = self.convert_mingus_composition(convert_into="data")
 
     def set_spr(self, compositions):
         self._spr_data = compositions
         self._mingus_composition_list = self.revert_spr()
-        self._pr_data = self.convert_mingus_composition(convert_into="pr")
-        self._data = self.convert_mingus_composition(convert_into="data")
+        # self._pr_data = self.convert_mingus_composition(convert_into="pr")
+        # self._data = self.convert_mingus_composition(convert_into="data")
 
     def set_spr_matrix(self, matrix, chord_list):
         self.chord_list = chord_list
@@ -136,22 +135,22 @@ class AIHeroData:
         compositions.append(composition)
         self.set_spr(compositions)
 
-    def sanitize(self):
-        pr_data = self.get_pr()
-        clean_pr_data = []
-        for composition in pr_data:
-            clean_composition = []
-            for tracks in composition:
-                clean_tracks = []
-                for bars in tracks:
-                    clean_bars = []
-                    for bar in bars:
-                        if not is_empty(bar):
-                            clean_bars.append(bar)
-                    clean_tracks.append(clean_bars)
-                clean_composition.append(clean_tracks)
-            clean_pr_data.append(clean_composition)
-        self.set_pr(clean_pr_data)
+    # def sanitize(self):
+    #     pr_data = self.get_pr()
+    #     clean_pr_data = []
+    #     for composition in pr_data:
+    #         clean_composition = []
+    #         for tracks in composition:
+    #             clean_tracks = []
+    #             for bars in tracks:
+    #                 clean_bars = []
+    #                 for bar in bars:
+    #                     if not is_empty(bar):
+    #                         clean_bars.append(bar)
+    #                 clean_tracks.append(clean_bars)
+    #             clean_composition.append(clean_tracks)
+    #         clean_pr_data.append(clean_composition)
+    #     self.set_pr(clean_pr_data)
 
     def convert_mingus_composition(self, convert_into="data"):
         compositions = []
@@ -161,88 +160,85 @@ class AIHeroData:
             converted_tracks = []  # lista de Track
             for track in composition[0].tracks:
                 # self.track_intrument.append(track.instrument) # todo fazer algo desse tipo
-                converted_track = []
-                for bar in track.bars:
-                    if len(bar) != 0:
-                        if convert_into == "spr":
-                            converted_bar = convert_bar_to_spr(bar)  # Implement when needed
-                        elif convert_into == "pr":
-                            converted_bar = convert_bar_to_pr(bar)  # Implement when needed
-                        else:
-                            converted_bar = convert_bar_to_data(bar)
-                        converted_track.append(converted_bar)
+                i = 0
+                if convert_into == "spr":
+                    converted_track = convert_track_to_spr(track)
+                elif convert_into == "pr":
+                    converted_track = convert_track_to_pr(track)  # Implement when needed
+                else:
+                    converted_track = convert_track_to_data(track)  # Implement when needed
                 converted_tracks.append(converted_track)
             converted_composition.append(converted_tracks)
             compositions.append(converted_composition)
         return compositions
 
-    def revert_data(self):
-        data = self.get_data()
-        compositions = []
-        for composition in data:
-            c = Composition()
-            for tracks in composition:
-                for bars in tracks:
-                    t = Track()
-                    for bar in bars:
-                        b = Bar()
-                        b.key.name = 'C'  # por enquanto sempre em C
-                        idx = 0
-                        while idx < len(bar):
-                            note_duration = 1
-                            while idx < len(bar) - 1 and bar[idx] == bar[idx + 1]:
-                                note_duration = note_duration + 1
-                                idx = idx + 1
-                            if bar[idx] != -1:
-                                octave, note_int = get_octave_and_note(bar[idx])
-                                new_note = Note(notes.int_to_note(note_int), octave=octave, velocity=90)
-                                b.place_notes(new_note, TIME_DIVISION / note_duration)
-                            else:
-                                b.place_rest(TIME_DIVISION / note_duration)
-                            idx = idx + 1
-                        t.add_bar(b)
-                    c.add_track(t)
-            composition_tuple = (c, self.bpm)
-            compositions.append(composition_tuple)
-        return compositions
-
-    def revert_pr(self):
-        compositions_converted = []
-        key_id = 0
-        for composition in self.get_pr():
-            c = Composition()
-            for tracks in composition:
-                for bars in tracks:
-                    t = Track()
-                    for matrix in bars:
-                        b = Bar()
-                        # b.key.name = self.chord_list[key_id] todo: fazer isso
-                        # key_id += 1
-                        i = 0
-                        while i < matrix.shape[1]:
-                            notes_matrix = np.where(matrix[:, i] > 0)
-                            there_is_note = False
-                            note_duration = 1
-                            n = NoteContainer()
-                            n.empty()
-                            for note in notes_matrix[0]:
-                                octave, note_int = get_octave_and_note(note)
-                                # print(f"place note {note}, {note_int}, {notes.int_to_note(note_int)} in fuse {i}")
-                                new_note = Note(notes.int_to_note(note_int), octave=octave, velocity=90)
-                                n.add_notes(new_note)
-                                there_is_note = True
-                            if there_is_note:
-                                # print(f"place notes {n}, with duration {TIME_DIVISION / note_duration}")
-                                b.place_notes(n, TIME_DIVISION / note_duration)
-                            else:
-                                # print(f"place rest, with duration {TIME_DIVISION / note_duration}")
-                                b.place_rest(TIME_DIVISION / note_duration)
-                            i += 1
-                        b = unite_notes(b)
-                        t.add_bar(b)
-                    c.add_track(t)
-            compositions_converted.append((c, self.bpm))
-        return compositions_converted
+    # def revert_data(self):
+    #     data = self.get_data()
+    #     compositions = []
+    #     for composition in data:
+    #         c = Composition()
+    #         for tracks in composition:
+    #             for bars in tracks:
+    #                 t = Track()
+    #                 for bar in bars:
+    #                     b = Bar()
+    #                     b.key.name = 'C'  # por enquanto sempre em C
+    #                     idx = 0
+    #                     while idx < len(bar):
+    #                         note_duration = 1
+    #                         while idx < len(bar) - 1 and bar[idx] == bar[idx + 1]:
+    #                             note_duration = note_duration + 1
+    #                             idx = idx + 1
+    #                         if bar[idx] != -1:
+    #                             octave, note_int = get_octave_and_note(bar[idx])
+    #                             new_note = Note(notes.int_to_note(note_int), octave=octave, velocity=90)
+    #                             b.place_notes(new_note, TIME_DIVISION / note_duration)
+    #                         else:
+    #                             b.place_rest(TIME_DIVISION / note_duration)
+    #                         idx = idx + 1
+    #                     t.add_bar(b)
+    #                 c.add_track(t)
+    #         composition_tuple = (c, self.bpm)
+    #         compositions.append(composition_tuple)
+    #     return compositions
+    #
+    # def revert_pr(self):
+    #     compositions_converted = []
+    #     key_id = 0
+    #     for composition in self.get_pr():
+    #         c = Composition()
+    #         for tracks in composition:
+    #             for bars in tracks:
+    #                 t = Track()
+    #                 for matrix in bars:
+    #                     b = Bar()
+    #                     # b.key.name = self.chord_list[key_id] todo: fazer isso
+    #                     # key_id += 1
+    #                     i = 0
+    #                     while i < matrix.shape[1]:
+    #                         notes_matrix = np.where(matrix[:, i] > 0)
+    #                         there_is_note = False
+    #                         note_duration = 1
+    #                         n = NoteContainer()
+    #                         n.empty()
+    #                         for note in notes_matrix[0]:
+    #                             octave, note_int = get_octave_and_note(note)
+    #                             # print(f"place note {note}, {note_int}, {notes.int_to_note(note_int)} in fuse {i}")
+    #                             new_note = Note(notes.int_to_note(note_int), octave=octave, velocity=90)
+    #                             n.add_notes(new_note)
+    #                             there_is_note = True
+    #                         if there_is_note:
+    #                             # print(f"place notes {n}, with duration {TIME_DIVISION / note_duration}")
+    #                             b.place_notes(n, TIME_DIVISION / note_duration)
+    #                         else:
+    #                             # print(f"place rest, with duration {TIME_DIVISION / note_duration}")
+    #                             b.place_rest(TIME_DIVISION / note_duration)
+    #                         i += 1
+    #                     b = unite_notes(b)
+    #                     t.add_bar(b)
+    #                 c.add_track(t)
+    #         compositions_converted.append((c, self.bpm))
+    #     return compositions_converted
 
     def revert_spr(self):
         compositions_converted = []
@@ -286,22 +282,22 @@ class AIHeroData:
             compositions_converted.append((c, self.bpm))
         return compositions_converted
 
-    def export_pr_as_image(self, path='', file_name="teste", title="Piano Roll of Melody"):
-        data = self.get_pr_as_matrix()
-        num_bars = data.shape[0]
-        concat_data = np.ndarray((MIDI_NOTES_NUMBER, TIME_DIVISION * num_bars))
-        a = 0
-        b = TIME_DIVISION
-        for i in range(num_bars):
-            concat_data[:, a:b] = data[i, :, :, 0]
-            a = b
-            b = b + TIME_DIVISION
-        plt.imshow(concat_data, cmap='Blues')
-        plt.axis([0, num_bars * TIME_DIVISION, 0, 100])  # necessary for inverting y axis
-        plt.ylabel("MIDI Notes")
-        plt.xlabel("Time Division")
-        plt.title(title)
-        plt.savefig(f'{file_name}.png', dpi=900)
+    # def export_pr_as_image(self, path='', file_name="teste", title="Piano Roll of Melody"):
+    #     data = self.get_pr_as_matrix()
+    #     num_bars = data.shape[0]
+    #     concat_data = np.ndarray((MIDI_NOTES_NUMBER, TIME_DIVISION * num_bars))
+    #     a = 0
+    #     b = TIME_DIVISION
+    #     for i in range(num_bars):
+    #         concat_data[:, a:b] = data[i, :, :, 0]
+    #         a = b
+    #         b = b + TIME_DIVISION
+    #     plt.imshow(concat_data, cmap='Blues')
+    #     plt.axis([0, num_bars * TIME_DIVISION, 0, 100])  # necessary for inverting y axis
+    #     plt.ylabel("MIDI Notes")
+    #     plt.xlabel("Time Division")
+    #     plt.title(title)
+    #     plt.savefig(f'{file_name}.png', dpi=900)
 
     def export_spr_as_image(self, path='', file_name="teste", title="Piano Roll of Melody"):
         data = self.get_spr_as_matrix()
@@ -331,9 +327,10 @@ class AIHeroData:
         base_composition = midi_file_in.MIDI_to_Composition(midi_file)
         base_track = base_composition[0].tracks[0]
         new_compositions = self.get_mingus_compositions()
-        for new_composition in new_compositions:
-            new_composition = (new_composition[0], base_composition[1])
-            new_composition[0].add_track(base_track)
+        tempo = 80  # todo FAZER ISSO FUNCIONAR E SINCRONIZAR AS MELODIAS PARA O MESMO TEMPO
+        for i in range(len(new_compositions)):
+            new_compositions[i] = (new_compositions[i][0], tempo)
+            new_compositions[i][0].add_track(base_track)
 
         self.set_mingus_compositions(new_compositions)
         self.revert_spr()
@@ -382,7 +379,7 @@ class AIHeroData:
         for bar_id in range(data.shape[0]):
             print("\n")
             bar = data[bar_id, :, :, :]
-            for i in range(bar.shape[0]-1, 0, -1):
+            for i in range(bar.shape[0] - 1, 0, -1):
                 row = bar[i, :, 0]
                 str_row = ""
                 for j in range(len(row)):
@@ -517,6 +514,7 @@ def unite_notes(bar):
         i += 1
     return output_bar
 
+
 def convert_mido_to_piano_roll(mido_data):
     composition = Composition()
     ticks_per_beat = mido_data.ticks_per_beat
@@ -535,3 +533,47 @@ def convert_mido_to_piano_roll(mido_data):
                     print(f'note_off {note} on {time / total_ticks} ticks')
 
     return composition
+
+
+def convert_track_to_spr(track):
+    max_size = len(track.bars)
+    converted_notes = np.zeros((SCALED_NOTES_NUMBER, TIME_DIVISION * max_size)) - 1
+    previous_position = 0
+    for bar in track.bars:
+        # bar = [current beat, duration, notes]
+        key_number = note_reference[bar.key.key]  # para adequar bar ao key
+        for note_container in bar.bar:
+            notes = note_container[2]
+            if notes:
+                for note in notes:
+                    # change notes for key C and make C4(note 60) as the middle of the piano_roll matrix
+                    note_number = convert_name_into_number(note.name)
+                    note_octave_factor = 12 * (note.octave + 1)
+                    central_note = CENTRAL_NOTE_NUMBER
+                    normalization_factor = int((SCALED_NOTES_RANGE[1] - SCALED_NOTES_RANGE[0]) / 2)
+                    midi_note = note_number + note_octave_factor - key_number - central_note + normalization_factor
+
+                    # get time position
+                    current_beat = previous_position + note_container[0]
+                    duration = note_container[1]
+                    begin_at = int(np.round(TIME_DIVISION * current_beat))
+                    num_time_steps = max(1, int(np.round(TIME_DIVISION / duration)))
+                    # print(f" begin: {begin_at}\n end: {begin_at + num_fuses - 1}\n bar: {bar.bar} \n container: {note_container}\n conv_notes:{converted_notes}")
+                    end_at = min(begin_at + num_time_steps, TIME_DIVISION*max_size)
+                    if SCALED_NOTES_RANGE[1] > midi_note >= SCALED_NOTES_RANGE[0]:
+                        converted_notes[midi_note, range(begin_at, end_at)] = 1
+        previous_position += bar.current_beat
+    converted_track = []
+    for i in range(0, TIME_DIVISION * max_size, TIME_DIVISION):
+        bar = converted_notes[:, i:i+TIME_DIVISION]
+        if np.max(bar) != -1:
+            converted_track.append(bar)
+    return converted_track
+
+
+def convert_track_to_pr(track):
+    return []
+
+
+def convert_track_to_data(track):
+    return []

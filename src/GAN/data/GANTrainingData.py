@@ -25,6 +25,7 @@ class GANTrainingData:
                 start_size = self._ai_hero_data.get_spr_as_matrix().shape[0]
                 print("Augmenting dataset...")
 
+            self.replicate(self._ai_hero_data.get_spr_as_matrix().shape[0] * augmentation_config["replication_factor"])
             self.augment()  # todo: ver se esse é de fato o melhor lugar
 
             if config["verbose"]:
