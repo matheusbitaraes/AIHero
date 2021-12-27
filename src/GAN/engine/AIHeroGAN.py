@@ -48,8 +48,8 @@ class AIHeroGAN:
         # This method returns a helper function to compute cross entropy loss
         self.cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
-        self.generator_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.5)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=3e-4, beta_1=0.5)
+        self.generator_optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.5)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=0.002, beta_1=0.5)
 
         self.checkpoint = tf.train.Checkpoint(generator_optimizer=self.generator_optimizer,
                                               discriminator_optimizer=self.discriminator_optimizer,
@@ -95,9 +95,17 @@ class AIHeroGAN:
         layer_2_finger = max(int(SCALED_NOTES_NUMBER / 4), 1)
         layer_2_fuse = max(int(TIME_DIVISION / 4), 1)
         model = tf.keras.Sequential()
-        # adicionar one hot encoder?
+
+        # https://analyticsindiamag.com/a-complete-understanding-of-dense-layers-in-neural-networks/#:~:text=In%20any%20neural%20network%2C%20a,in%20artificial%20neural%20network%20networks.
+        # Dense layer: Neurons of the layer that is deeply connected with its preceding layer which means the neurons
+        # of the layer are connected to every neuron of its preceding layer.
         model.add(layers.Dense(layer_2_finger * layer_2_fuse * 256, use_bias=False, input_shape=(self.noise_dim,)))
-        model.add(layers.BatchNormalization())
+
+        ## Normalization layer
+        # model.add(layers.BatchNormalization())
+
+        # Leaky Rectified Linear Unit (ReLU) layer: A leaky ReLU layer performs a threshold operation, where any
+        # input value less than zero is multiplied by a fixed scalar.
         model.add(layers.LeakyReLU())
 
         model.add(layers.Reshape((layer_2_finger, layer_2_fuse, 256)))
@@ -105,13 +113,15 @@ class AIHeroGAN:
 
         model.add(layers.Conv2DTranspose(128, (5, 5), strides=(1, 1), padding='same', use_bias=False))
         assert model.output_shape == (None, layer_2_finger, layer_2_fuse, 128)
-        model.add(layers.BatchNormalization())
+        # model.add(layers.BatchNormalization())
         model.add(layers.LeakyReLU())
 
         model.add(layers.Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
         assert model.output_shape == (None, layer_1_finger, layer_1_fuse, 64)
-        model.add(layers.BatchNormalization())
+
+        model.add(layers.Dense(64))
         model.add(layers.LeakyReLU())
+        model.add(layers.BatchNormalization())
 
         model.add(layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
         assert model.output_shape == (None, SCALED_NOTES_NUMBER, TIME_DIVISION, 1)
