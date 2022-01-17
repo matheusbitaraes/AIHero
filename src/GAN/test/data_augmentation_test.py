@@ -1,4 +1,5 @@
 # script for testing the effect of using data augmentation strategies for enhancing test
+import json
 import time
 from datetime import date
 from glob import glob
@@ -9,100 +10,166 @@ import numpy as np
 from src.GAN.data.GANTrainingData import GANTrainingData
 from src.GAN.engine.AIHeroGAN import AIHeroGAN
 from src.data.AIHeroData import AIHeroData
+from src.utils.AIHeroEnums import MelodicPart
 
-NUM_SAMPLES = 3
-TRAIN_TEST_RATIO = 0.8 # leave-one-out
+NUM_SAMPLES = 20
+TRAIN_TEST_RATIO = 1  # leave-one-out
+EPOCH_LOSSES_RANGE = 5
+part = MelodicPart.X
+# INITIAL_REPLICATION = 1
 
-# todo implementar leave-one-out, estrategia para estimar generalização - ok
-# todo modificar data augmentations que expandam mais o dataset
-# todo rever todo o treinamento, batch size e essas coisas para que fique show
+should_generate_gif = False
 
 with open('test_config.json') as config_file:
     config = jload(config_file)
 
-avg_grade_a = np.zeros(NUM_SAMPLES)
-avg_grade_b = np.zeros(NUM_SAMPLES)
-avg_grade_c = np.zeros(NUM_SAMPLES)
+average_gen_loss_a = []
+average_gen_loss_b = []
+average_gen_loss_c = []
 
-avg_time_a = np.zeros(NUM_SAMPLES)
-avg_time_b = np.zeros(NUM_SAMPLES)
-avg_time_c = np.zeros(NUM_SAMPLES)
+average_disc_loss_a = []
+average_disc_loss_b = []
+average_disc_loss_c = []
+
+diff_a = []
+diff_b = []
+diff_c = []
+
+sum_a = []
+sum_b = []
+sum_c = []
+
+avg_time_a = []
+avg_time_b = []
+avg_time_c = []
+
+fid_a = []
+fid_b = []
+fid_c = []
+
 data = AIHeroData()
 
-epoch_time_sec = 25
-augmentation_time_sec = 3
-one_iteration_time = (config['training']['num_epochs'] * epoch_time_sec + augmentation_time_sec) * 2
-duration_estimate = one_iteration_time * NUM_SAMPLES / 3600
-print(f"This is probably going to take {duration_estimate} hours")
+
+def transform_specs_into_name(config, TRAIN_TEST_RATIO):
+    da_pipeline = ""
+    for d in config['data_augmentation']['data_augmentation_strategy_pipeline']: da_pipeline += json.dumps(d)
+    da_pipeline = da_pipeline \
+        .replace("{", "_") \
+        .replace("}", "") \
+        .replace("\"", "") \
+        .replace(",", "") \
+        .replace(" ", "_") \
+        .replace(":", "_")
+    return f"num_epochs_{config['training']['num_epochs']}_" \
+           f"da_pipeline_{da_pipeline}"
+
+
+specs = transform_specs_into_name(config, TRAIN_TEST_RATIO)
 for i in range(0, NUM_SAMPLES):
-    data.load_from_midi_files(glob(f"{config['training']['train_data_folder']}/part*"))
+    data.load_from_midi_files(glob(f"{config['training']['train_data_folder']}/part_{part.name}*"))
     train_data, test_data = data.split_into_train_test(TRAIN_TEST_RATIO)
 
+    # train_data.replicate(INITIAL_REPLICATION)
+
+    train_data_a = AIHeroData()
+    train_data_b = AIHeroData()
+    train_data_c = AIHeroData()
+    train_data_a.set_mingus_compositions(train_data.get_mingus_compositions(), train_data.chord_list)
+    train_data_b.set_mingus_compositions(train_data.get_mingus_compositions(), train_data.chord_list)
+    train_data_c.set_mingus_compositions(train_data.get_mingus_compositions(), train_data.chord_list)
+
     # generate and train gans
-    print(f"Test data size: {test_data.get_spr_as_matrix().shape[0]}")
-    print("Trainnig gan with test data...")
+    print(f"Train data size: {train_data.get_spr_as_matrix().shape[0]}")
+    print("Training gan with train data...")
     config["data_augmentation"]["enabled"] = False  # disable for this test
     gan_a = AIHeroGAN(config)
-    gan_a.training_data = GANTrainingData(config, data=train_data)
+    gan_a.training_data = GANTrainingData(config, data=train_data_a)
     print(f"Training data shape: {gan_a.training_data.get_as_matrix().shape}")
-    t_start = time.time()
-    gan_a.train()
-    avg_time_a[i] = time.time() - t_start
 
-    print("Trainnig gan with augmented data...")
+    # get a non trained random noise
+    # test_data_matrix = test_data.get_spr_as_matrix()
+    # size = test_data_matrix.shape[0]
+    # random_noise = gan_a.generate_prediction(True, size)
+
+    t_start = time.time()
+    gan_a.train(should_generate_gif=should_generate_gif, prefix="original_")
+    avg_time_a.append(time.time() - t_start)
+    average_gen_loss_a.append(np.mean(gan_a.generator_losses[-EPOCH_LOSSES_RANGE:]))
+    average_disc_loss_a.append(np.mean(gan_a.discriminator_losses[-EPOCH_LOSSES_RANGE:]))
+    fid_a.append(gan_a.quality_measures[-1])
+
+    print("Training gan with augmented data...")
     gan_b = AIHeroGAN(config)
-    config["data_augmentation"]["enabled"] = True  # enable for this test
-    gan_b.training_data = GANTrainingData(config, data=train_data)
-    print(f"Augmented data shape: {gan_a.training_data.get_as_matrix().shape}")
+    config["data_augmentation"]["enabled"] = True
+    gan_b.training_data = GANTrainingData(config, data=train_data_b)
+    print(f"Augmented data shape: {gan_b.training_data.get_as_matrix().shape}")
+    augmented_data_size = gan_b.training_data.get_as_matrix().shape[0]
     t_start = time.time()
-    gan_b.train()
-    avg_time_b[i] = time.time() - t_start
+    gan_b.train(should_generate_gif=should_generate_gif, prefix="augmented_")
+    avg_time_b.append(time.time() - t_start)
+    average_gen_loss_b.append(np.mean(gan_b.generator_losses[-EPOCH_LOSSES_RANGE:]))
+    average_disc_loss_b.append(np.mean(gan_b.discriminator_losses[-EPOCH_LOSSES_RANGE:]))
+    fid_b.append(gan_b.quality_measures[-1])
 
-    print("Trainnig gan with replicated data...")
+    print("Training gan with replicated data...")
     config["data_augmentation"]["enabled"] = False  # disable for this test
     gan_c = AIHeroGAN(config)
-    gan_c.training_data = GANTrainingData(config, data=train_data)
-    augmented_data_size = gan_b.training_data.get_as_matrix().shape[0]
+    gan_c.training_data = GANTrainingData(config, data=train_data_c)
     gan_c.training_data.replicate(final_size=augmented_data_size)
-    print(f"Replicated data shape: {gan_a.training_data.get_as_matrix().shape}")
+    print(f"Replicated data shape: {gan_c.training_data.get_as_matrix().shape}")
     t_start = time.time()
-    gan_c.train()
-    avg_time_c[i] = time.time() - t_start
+    gan_c.train(should_generate_gif=should_generate_gif, prefix="replicated_")
+    avg_time_c.append(time.time() - t_start)
+    average_gen_loss_c.append(np.mean(gan_c.generator_losses[-EPOCH_LOSSES_RANGE:]))
+    average_disc_loss_c.append(np.mean(gan_c.discriminator_losses[-EPOCH_LOSSES_RANGE:]))
+    fid_c.append(gan_c.quality_measures[-1])
 
-    test_data_matrix = test_data.get_spr_as_matrix()
-    size = test_data_matrix.shape[0]
-    discriminator_response_a = gan_a.discriminator_model(test_data_matrix, training=False)
-    discriminator_response_b = gan_b.discriminator_model(test_data_matrix, training=False)
-    discriminator_response_c = gan_c.discriminator_model(test_data_matrix, training=False)
-    avg_grade_a[i] = np.mean(discriminator_response_a)
-    avg_grade_b[i] = np.mean(discriminator_response_b)
-    avg_grade_c[i] = np.mean(discriminator_response_c)
-    print(
-        f"\nThe average discriminator response for iteration {i + 1} is \n test_data: {avg_grade_a[i]} augmented_data:{avg_grade_b[i]}, replicated_data: {avg_grade_c[i]} \n")
+    diff_a.append(abs(average_gen_loss_a[i] - average_disc_loss_a[i]))
+    diff_b.append(abs(average_gen_loss_b[i] - average_disc_loss_b[i]))
+    diff_c.append(abs(average_gen_loss_c[i] - average_disc_loss_c[i]))
 
-print(f"****** RESULTS ******* :\n"
-      f"Original Dataset: {np.mean(avg_grade_a)} +- {np.std(avg_grade_a)}\n"
-      f"Augmented Dataset: {np.mean(avg_grade_b)} +- {np.std(avg_grade_b)}\n"
-      f"Replicated Dataset: {np.mean(avg_grade_c)} +- {np.std(avg_grade_c)}")
+    sum_a.append(average_gen_loss_a[i] + average_disc_loss_a[i])
+    sum_b.append(average_gen_loss_b[i] + average_disc_loss_b[i])
+    sum_c.append(average_gen_loss_c[i] + average_disc_loss_c[i])
 
-a_acc = avg_grade_a.tolist()
-a_acc.insert(0, "original_acc")
+    print(f"****** SAMPLE {i + 1} ******* :\n"
+          f"Original Gen loss: {np.mean(average_gen_loss_a)} +- {np.std(average_gen_loss_a)}\n"
+          f"Augmented Gen loss: {np.mean(average_gen_loss_b)} +- {np.std(average_gen_loss_b)}\n"
+          f"Replicated Gen loss: {np.mean(average_gen_loss_c)} +- {np.std(average_gen_loss_c)}\n\n"
+          f"Original Discr loss: {np.mean(average_disc_loss_a)} +- {np.std(average_disc_loss_a)}\n"
+          f"Augmented Discr loss: {np.mean(average_disc_loss_b)} +- {np.std(average_disc_loss_b)}\n"
+          f"Replicated Discr loss: {np.mean(average_disc_loss_c)} +- {np.std(average_disc_loss_c)}\n\n"
+          f"Original Dataset Diff: {np.mean(diff_a)} +- {np.std(diff_a)}\n"
+          f"Augmented Dataset Diff: {np.mean(diff_b)} +- {np.std(diff_b)}\n"
+          f"Replicated Dataset Diff: {np.mean(diff_c)} +- {np.std(diff_c)}\n\n"
+          f"Original Dataset sum: {np.mean(sum_a)} +- {np.std(sum_a)}\n"
+          f"Augmented Dataset sum: {np.mean(sum_b)} +- {np.std(sum_b)}\n"
+          f"Replicated Dataset sum: {np.mean(sum_c)} +- {np.std(sum_c)}\n\n"
+          f"Original Dataset FID: {np.mean(fid_a)} +- {np.std(fid_a)}\n"
+          f"Augmented Dataset FID: {np.mean(fid_b)} +- {np.std(fid_b)}\n"
+          f"Replicated Dataset FID: {np.mean(fid_c)} +- {np.std(fid_c)}")
 
-b_acc = avg_grade_b.tolist()
-b_acc.insert(0, "augmented_acc")
+    today = date.today()
+    filename = f'result_{specs}_{today.strftime("%Y%m%d")}'
+    np.savetxt(f'{filename}.csv',
+               [p for p in zip(average_gen_loss_a,
+                               average_disc_loss_a,
+                               sum_a,
+                               diff_a,
+                               avg_time_a,
+                               average_gen_loss_b,
+                               average_disc_loss_b,
+                               sum_b,
+                               diff_b,
+                               avg_time_b,
+                               average_gen_loss_c,
+                               average_disc_loss_c,
+                               sum_c,
+                               diff_c,
+                               avg_time_c,
+                               fid_a,
+                               fid_b,
+                               fid_c
+                               )],
 
-c_acc = avg_grade_c.tolist()
-c_acc.insert(0, "replicated_acc")
-
-a_time = avg_time_a.tolist()
-a_time.insert(0, "original_time")
-
-b_time = avg_time_b.tolist()
-b_time.insert(0, "augmented_time")
-
-c_time = avg_time_c.tolist()
-c_time.insert(0, "replicated_time")
-
-today = date.today()
-filename = f'result_{today.strftime("%Y%m%d")}_{time.time_ns()}'
-np.savetxt(f'{filename}.csv', [p for p in zip(a_acc, a_time, b_acc, b_time, c_acc, c_time)], delimiter=';', fmt='%s')
+               delimiter=';', fmt='%s')

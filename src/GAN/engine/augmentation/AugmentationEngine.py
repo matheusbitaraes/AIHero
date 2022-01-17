@@ -1,5 +1,6 @@
 import numpy as np
 
+from src.GAN.engine.augmentation.FifthNoteAddStrategy import FifthNoteAddStrategy
 from src.GAN.engine.augmentation.NoteJoinStrategy import NoteJoinStrategy
 from src.GAN.engine.augmentation.OctaveChangeStrategy import OctaveChangeStrategy
 from src.GAN.engine.augmentation.TimeChangeStrategy import TimeChangeStrategy
@@ -45,5 +46,7 @@ def get_from_string(strategy_string):
         return TimeChangeStrategy()
     elif strategy_string == "NoteJoinStrategy":
         return NoteJoinStrategy()
+    elif strategy_string == "FifthNoteAddStrategy":
+        return FifthNoteAddStrategy()
     else:
         return None

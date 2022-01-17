@@ -46,3 +46,7 @@ class GANTrainingData:
     def print_on_terminal(self):
         self._ai_hero_data.print_on_terminal()
         pass
+
+    @property
+    def ai_hero_data(self):
+        return self._ai_hero_data

@@ -8,6 +8,8 @@ import os
 import PIL
 from tensorflow.keras import layers
 import time
+from tensorflow.python.client import device_lib
+
 
 from IPython import display
 
@@ -15,6 +17,12 @@ from IPython import display
 
 train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
 train_images = (train_images - 127.5) / 127.5  # Normalize the images to [-1, 1]
+
+print(device_lib.list_local_devices())
+tf.config.list_physical_devices("GPU")
+
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 BUFFER_SIZE = 60000
 BATCH_SIZE = 256

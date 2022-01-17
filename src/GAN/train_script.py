@@ -8,6 +8,6 @@ with open('config.json') as config_file:
 
 gan_service = GANService(config)
 
-part = MelodicPart.Z
+part = MelodicPart.X
 gan_service.train_gan(part=part.value, should_generate_gif=True)
 # gan_service.train_gans(should_generate_gif=True)
