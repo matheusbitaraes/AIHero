@@ -14,8 +14,9 @@ from tensorflow.keras import layers
 from tensorflow.python.ops.numpy_ops import np_config
 
 from src.GAN.data.GANTrainingData import GANTrainingData
+from src.GAN.engine.quality.FIDQualityModel import FIDQualityModel
 from src.utils.AIHeroEnums import MelodicPart
-from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, TRAIN_DATA_REPLICAS, SCALED_NOTES_RANGE
+from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
 
 
 class AIHeroGAN:
@@ -24,21 +25,33 @@ class AIHeroGAN:
         self.part_type = part.value
 
         # training
-        self.noise_dim = 100  # todo: experiment other values
-        self.num_examples_to_generate = 1  # number of melodies to be generated
-        self.BATCH_PERCENTAGE = 0.1
-        self.BATCH_SIZE = 25  # this will be subscribed
-        self.BUFFER_PERCENTAGE = 0.2
+        self.noise_dim = config["training"]["noise_dim"]  # todo: experiment other values
+        self.num_examples_to_generate = config["training"][
+            "num_examples_to_generate"]  # number of melodies to be generated
+        self.BATCH_PERCENTAGE = config["training"]["batch_percentage_alt"]
+        self.BUFFER_PERCENTAGE = config["training"]["buffer_percentage"]
+        self.BATCH_SIZE = config["training"]["max_batch_size"]
+        self.num_epochs = config["training"]["num_epochs"]
 
         self.training_data = GANTrainingData(config, melodic_part=part)
 
         # Private Variables
         self._trained = False
         self._verbose = config["verbose"]
+        self._should_use_checkpoint = config["checkpoint"]["use_checkpoint"]
+        self._generator_losses = []
+        self._discriminator_losses = []
 
         self.gifs_evidence_dir = config["generated_evidences_dir"]
-        self.checkpoint_dir = f'{config["checkpoint_folder"]}/part_{self.part_type}'
+        self.checkpoint_dir = f'{config["checkpoint"]["checkpoint_folder"]}/part_{self.part_type}'
         self.checkpoint_prefix = os.path.join(self.checkpoint_dir, "ckpt")
+
+        # quality metric
+        self._live_quality_polling_enabled = config["training"]["enable_live_quality_measures"]
+        self._quality_model = FIDQualityModel()
+        self._epochs_for_quality_measure = config["training"]["epochs_for_quality_measure"]
+        self._max_samples_for_quality_measure = config["training"]["max_samples_for_quality_measure"]
+        self._quality_measures = []
 
         self.generator_model = self.make_generator_model()
         self.discriminator_model = self.make_discriminator_model()
@@ -46,18 +59,27 @@ class AIHeroGAN:
         # This method returns a helper function to compute cross entropy loss
         self.cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
-        self.generator_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.5)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=3e-4, beta_1=0.5)
+        self.generator_optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.5)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=0.002, beta_1=0.5)
 
         self.checkpoint = tf.train.Checkpoint(generator_optimizer=self.generator_optimizer,
                                               discriminator_optimizer=self.discriminator_optimizer,
                                               generator=self.generator_model,
                                               discriminator=self.discriminator_model)
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
-        self.load_from_checkpoint()  # todo: pensar onde essa lógica do load checkpoint vai ficar
+
+        if self._should_use_checkpoint:
+            self.load_from_checkpoint()
+
+        # if tf.config.list_physical_devices('GPU'):
+        #     physical_devices = tf.config.list_physical_devices('GPU')
+        #     tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+            # tf.config.experimental.set_virtual_device_configuration(physical_devices[0], [
+            #     tf.config.experimental.VirtualDeviceConfiguration(memory_limit=3000)])
 
     def load_from_checkpoint(self):
-        print(f"loading checkpoint for gan of part {self.part_type}...")
+        if self.should_verbose():
+            print(f"loading checkpoint for gan of part {self.part_type}...")
         load_status = self.checkpoint.restore(tf.train.latest_checkpoint(self.checkpoint_dir))
         try:
             load_status.assert_existing_objects_matched()
@@ -65,10 +87,11 @@ class AIHeroGAN:
         except:
             there_is_a_checkpoint = False
 
-        if there_is_a_checkpoint:
-            print("Checkpoint loaded!")
-        else:
-            print("no checkpoint found")
+        if self.should_verbose():
+            if there_is_a_checkpoint:
+                print("Checkpoint loaded!")
+            else:
+                print("no checkpoint found")
 
     def set_verbose(self, value):
         self._verbose = value
@@ -80,31 +103,22 @@ class AIHeroGAN:
         return self._trained
 
     def make_generator_model(self):
-        # TODO: entender melhor estes parametros
-
-        # rnn com lstm
-        # fazer one hot encode
-        # ver proprio site do keras
-        # https://colah.github.io/posts/2015-08-Understanding-LSTMs/
-
-        # # Add an Embedding layer expecting input vocab of size 1000, and
-        # # output embedding dimension of size 64.
-        # model.add(layers.Embedding(input_length=32, input_dim=SCALED_NOTES_NUMBER + 1, output_dim=64))
-        #
-        # # Add a LSTM layer with 128 internal units.
-        # model.add(layers.LSTM(128))
-        #
-        # # Add a Dense layer with 10 units.
-        # model.add(layers.Dense(10))
-
         layer_1_finger = max(int(SCALED_NOTES_NUMBER / 2), 1)
         layer_1_fuse = max(int(TIME_DIVISION / 2), 1)
         layer_2_finger = max(int(SCALED_NOTES_NUMBER / 4), 1)
         layer_2_fuse = max(int(TIME_DIVISION / 4), 1)
         model = tf.keras.Sequential()
-        # adicionar one hot encoder?
+
+        # https://analyticsindiamag.com/a-complete-understanding-of-dense-layers-in-neural-networks/#:~:text=In%20any%20neural%20network%2C%20a,in%20artificial%20neural%20network%20networks.
+        # Dense layer: Neurons of the layer that is deeply connected with its preceding layer which means the neurons
+        # of the layer are connected to every neuron of its preceding layer.
         model.add(layers.Dense(layer_2_finger * layer_2_fuse * 256, use_bias=False, input_shape=(self.noise_dim,)))
+
+        ## Normalization layer
         model.add(layers.BatchNormalization())
+
+        # Leaky Rectified Linear Unit (ReLU) layer: A leaky ReLU layer performs a threshold operation, where any
+        # input value less than zero is multiplied by a fixed scalar.
         model.add(layers.LeakyReLU())
 
         model.add(layers.Reshape((layer_2_finger, layer_2_fuse, 256)))
@@ -117,8 +131,10 @@ class AIHeroGAN:
 
         model.add(layers.Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
         assert model.output_shape == (None, layer_1_finger, layer_1_fuse, 64)
-        model.add(layers.BatchNormalization())
+
+        # model.add(layers.Dense(64))
         model.add(layers.LeakyReLU())
+        model.add(layers.BatchNormalization())
 
         model.add(layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
         assert model.output_shape == (None, SCALED_NOTES_NUMBER, TIME_DIVISION, 1)
@@ -129,12 +145,6 @@ class AIHeroGAN:
         return model
 
     def make_discriminator_model(self):
-        # TODO: entender melhor!
-        # model.add(layers.Embedding(input_length=32, input_dim=SCALED_NOTES_NUMBER + 1, output_dim=64))
-        # model.add(layers.LSTM(128))
-        # # Add a Dense layer with 10 units.
-        # model.add(layers.Dense(10))
-
         model = tf.keras.Sequential()
         model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same',
                                 input_shape=[SCALED_NOTES_NUMBER, TIME_DIVISION, 1]))
@@ -195,18 +205,20 @@ class AIHeroGAN:
             "generator_loss": gen_loss
         }
 
-    def train(self, num_seeds=1, epochs=50, should_generate_gif=False):
-        self.num_examples_to_generate = num_seeds
+    def train(self, should_generate_gif=False, prefix=""):
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
             dataset = self.training_data.get_as_matrix()
-            dataset = np.repeat(dataset, TRAIN_DATA_REPLICAS, axis=0)  # DATASET AUGMENTATION
 
             BUFFER_SIZE = np.int(dataset.shape[0] * self.BUFFER_PERCENTAGE)
-            self.BATCH_SIZE = np.int(dataset.shape[0] * self.BATCH_PERCENTAGE)
+
+            # O IDEAL É O ABAIXO - APAGANDO TEMPORARIAMENTE PARA TESTE
+            # self.BATCH_SIZE = min(self.BATCH_SIZE, np.int(np.int(np.ceil(dataset.shape[0] * self.BATCH_PERCENTAGE))))
+
             train_dataset = tf.data.Dataset.from_tensor_slices(dataset).shuffle(BUFFER_SIZE).batch(self.BATCH_SIZE)
 
-            for epoch in range(epochs):
+            current_time_min = 0
+            for epoch in range(self.num_epochs):
                 start = time.time()
                 results = None
                 for melody_batch in train_dataset:
@@ -219,35 +231,43 @@ class AIHeroGAN:
                           f' Loss D: {results["discriminator_loss"]}')
 
                 # Save the model every 15 epochs
-                if (epoch + 1) % 15 == 0:
+                if self._should_use_checkpoint and (epoch + 1) % 15 == 0:
                     self.checkpoint.save(file_prefix=self.checkpoint_prefix)
 
+                # measure GAN quality: DISABLE THIS FOR BETTER PERFORMANCE
+                if (epoch + 1) % self._epochs_for_quality_measure == 0:
+                    self._quality_measures.append(self.calculate_quality_measure())
+
+                self._generator_losses.append(float(results["generator_loss"]))
+                self._discriminator_losses.append(float(results["discriminator_loss"]))
+
+                current_time_min = current_time_min + (time.time() - start) / 60
+
                 if should_generate_gif:
-                    self.generate_and_save_images(epoch)
+                    self.generate_and_save_images(epoch, current_time_min)
 
                 if self.should_verbose():
                     print(f'Time for epoch {epoch + 1} is {time.time() - start} sec')
 
+            # get last quality measure
+            self._quality_measures.append(self.calculate_quality_measure())
+
             # Generate after the final epoch
             if should_generate_gif:
                 display.clear_output(wait=True)
-                self.generate_and_save_images(epochs)
-                self.generate_gif()
+                self.generate_and_save_images(self.num_epochs, current_time_min)
+                self.generate_gif(filename_prefix=prefix)
 
                 # erase temporary images
-                for f in glob.glob('.temp/image*.png'):
+                for f in glob.glob('.temp/*.png'):
                     os.remove(f)
 
         except Exception as e:
             print(f"Failed training gan of type {self.part_type}: {e}")
             print(traceback.format_exc())
 
-    def generate_and_save_images(self, epoch, new_seed=False):
+    def generate_and_save_images(self, epoch, current_time_min, new_seed=False):
         predictions = self.generate_prediction(new_seed)
-        # fig = plt.figure(figsize=(4, 4))
-        #
-        # for i in range(predictions.shape[0]):
-        #     plt.imshow(predictions[i, :, :, 0], cmap='gray')
         num_bars = predictions.shape[0]
         concat_data = np.ndarray((SCALED_NOTES_NUMBER, TIME_DIVISION * num_bars))
         a = 0
@@ -256,21 +276,44 @@ class AIHeroGAN:
             concat_data[:, a:b] = predictions[i, :, :, 0]
             a = b
             b = b + TIME_DIVISION
-        plt.imshow(concat_data, cmap='Blues')
-        plt.axis([0, num_bars * TIME_DIVISION, SCALED_NOTES_RANGE[0],
-                  SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
-        plt.ylabel("MIDI Notes")
-        plt.xlabel("Time Division")
-        # plt.text(1, 90, f'Loss G: {results["generator_loss"]}, Loss D: {results["discriminator_loss"]}')
-        plt.savefig('.temp/image_at_epoch_{:04d}.png'.format(epoch))
 
-    def generate_gif(self):
-        # def display_image(epoch_no):
-        #     return PIL.Image.open('.temp/image_at_epoch_{:04d}.png'.format(epoch_no))
-        #
-        # display_image(epochs)
+        if self._live_quality_polling_enabled:
+            fig, axs = plt.subplots(3)
+        else:
+            fig, axs = plt.subplots(2)
+        fig.suptitle(f'Training progress for epoch {epoch} ({round(current_time_min, 2)} min)')
+
+        # midi plot
+        axs[0].imshow(concat_data, cmap='Blues')
+        axs[0].axis([0, num_bars * TIME_DIVISION, SCALED_NOTES_RANGE[0],
+                     SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
+        axs[0].set(xlabel='Time Division', ylabel='MIDI Notes')
+
+        # losses plot
+        max_epochs = 50
+        begin = max(0, epoch - max_epochs)
+        end = epoch
+        axs[1].plot(range(begin, end), self._generator_losses[begin:end])
+        axs[1].plot(range(begin, end), self._discriminator_losses[begin:end])
+        axs[1].legend(["Generator Loss: {:03f}".format(self._generator_losses[-1]),
+                       "Discriminator Loss {:03f}".format(self._discriminator_losses[-1])])
+        axs[1].set(xlabel='Epochs', ylabel='Loss')
+
+        # quality measure plot
+        if self._live_quality_polling_enabled:
+            num_measures = len(self._quality_measures)
+            epoch_array = range(0, num_measures * self._epochs_for_quality_measure, self._epochs_for_quality_measure)
+            axs[2].plot(epoch_array, self._quality_measures)
+            if len(self._quality_measures):
+                axs[2].legend(["FID indicator: {:03f}".format(self._quality_measures[-1])])
+            axs[2].set(xlabel='Epochs', ylabel='FID')
+
+        plt.savefig('.temp/image_at_epoch_{:04d}.png'.format(epoch))
+        plt.close()
+
+    def generate_gif(self, filename_prefix=""):
         today = date.today()
-        anim_file = f'{self.gifs_evidence_dir}/{self.part_type}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
+        anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}{self.part_type}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
 
         with imageio.get_writer(anim_file, mode='I') as writer:
             filenames = glob.glob('.temp/image*.png')
@@ -305,6 +348,26 @@ class AIHeroGAN:
         output = np.zeros((1, train_data.shape[1], train_data.shape[2], train_data.shape[3]))
         output[0:number, :, :, :] = train_data[index, :, :, :]
         return output
+
+    @property
+    def generator_losses(self):
+        return self._generator_losses
+
+    @property
+    def discriminator_losses(self):
+        return self._discriminator_losses
+
+    def calculate_quality_measure(self):
+        real_data = self.training_data.get_as_matrix()
+        training_size = real_data.shape[0]
+        size = min(training_size, self._max_samples_for_quality_measure)
+        fake_data = self.generate_prediction(new_seed=True, size=size)
+
+        return self._quality_model.calculate_quality(real_data[0:size, :, :, :], np.array(fake_data))
+
+    @property
+    def quality_measures(self):
+        return self._quality_measures
 
 
 def normalize_melody(melody):
