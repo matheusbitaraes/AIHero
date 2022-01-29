@@ -34,6 +34,7 @@ data.columns = col_names
 # filtered_entries = (abs_z_scores < 3).all(axis=1)
 # data = data[filtered_entries]
 num_samples = data.shape[0]
+print(num_samples)
 
 # plots with original dataset
 fig, ax = plt.subplots(2, 2)
@@ -69,6 +70,9 @@ plt.show()
 # combine three groups into one array
 discr_data = np.array([data[col_names[15]], data[col_names[16]], data[col_names[17]]])
 
+print(f"Original dataset FID:{np.mean(data[col_names[15]])} +- {np.std(data[col_names[15]])}\n"
+      f"Augmented dataset FID:{np.mean(data[col_names[16]])} +- {np.std(data[col_names[16]])}\n"
+      f"Replicated dataset FID:{np.mean(data[col_names[17]])} +- {np.std(data[col_names[17]])}\n")
 # perform Nemenyi post-hoc test
 test = sp.posthoc_nemenyi_friedman(discr_data.T)
 print(f"p-values of posthoc Nemenyi Test (FID): {col_names[7]}")
