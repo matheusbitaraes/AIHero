@@ -135,3 +135,5 @@ src/GAN/data/training_checkpoints/
 src/GAN/data/evidences/
 src/resources/generated_melodies/
 fluidsynth/
+
+.idea/
