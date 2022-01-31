@@ -129,6 +129,8 @@ dmypy.json
 .pyre/
 
 src/.temp/
+src/GAN/.temp
+src/GAN/test/.temp
 src/GAN/data/training_checkpoints/
 src/GAN/data/evidences/
 src/resources/generated_melodies/
