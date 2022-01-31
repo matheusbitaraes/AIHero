@@ -1,23 +1,24 @@
-import random
-import traceback
-from queue import Queue
+import os
 
-import numpy as np
-
-from src.EVO.service.EVOService import EVOService
-from src.GAN.data.GANTrainingData import GANTrainingData
-from src.GAN.service.GANService import GANService
-from src.data.AIHeroData import AIHeroData
-from src.service.AIHeroService import AIHeroService
-from src.utils.AIHeroEnums import MelodicPart
+from src.worker.QueueConsumer import QueueConsumer
 
 
 class QueueService:
-    def __init__(self):
-        self.queue = Queue()
+    def __init__(self, config):
+        self.melody_path = config["queue"]["melody_path"]
+        self.queue_consumer = QueueConsumer(config)
 
-    def add_to_queue(self, melody_specs_list):
-        self.queue.  append(melody_specs_list)
+    def add_to_queue(self, melody_request):
+        return self.queue_consumer.add_to_queue(melody_request)
 
-    def get_next_element(self, melody_specs_list):
-        return self.queue.append(melody_specs_list)
+    def get_melody_by_id(self, melody_id):
+        file = f"{self.melody_path}/{melody_id}.mid"
+        print(f"getting melody id {melody_id} on path {self.melody_path}")
+        is_file = os.path.isfile(file)
+        if not is_file:
+            return None
+        else:
+            print(f"File found at {file}!")
+            return file
+
+

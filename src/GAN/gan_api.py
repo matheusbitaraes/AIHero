@@ -17,15 +17,13 @@ app = FastAPI(title="AIHeroGAN", version="0.0.1")
 gan_service = GANService(config)
 
 
-# todo criar classes de entrada e saída da API MelodySpecs para tipar essa entrada
-
 @app.get('/train/{melodic_type_value}/{num_epochs}', status_code=200)
 def trainGan(melodic_type_value: str, num_epochs: int, should_generate_gif: bool = False):
     try:
         part = MelodicPart(melodic_type_value)
         t = time.time()
         gan_service.train_gan(part=part.value, should_generate_gif=should_generate_gif, num_epochs=num_epochs)
-        return {"message": f"gan type {melodic_type_value} trained! Took {t - time.time():.2f}s for {num_epochs} epochs"}
+        return {"message": f"gan type {melodic_type_value} trained! Took {time.time() - t:.2f}s for {num_epochs} epochs"}
     except ValueError:
         raise HTTPException(status_code=400, detail=f"{melodic_type_value} is not a valid type")
 

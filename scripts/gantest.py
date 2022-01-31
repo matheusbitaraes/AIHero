@@ -150,7 +150,7 @@ def train(dataset, epochs):
     if (epoch + 1) % 15 == 0:
       checkpoint.save(file_prefix = checkpoint_prefix)
 
-    print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
+    print (f'Time for epoch {epoch + 1} is {time.time()-start:.2f} sec')
 
   # Generate after the final epoch
   display.clear_output(wait=True)

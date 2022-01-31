@@ -19,8 +19,8 @@ class GANService:
             except GanTrainingException:
                 print(f"Error training GAN for part {part.value}")
 
-    def train_gan(self, part, should_generate_gif=False):
-        return self.gans[part].train(should_generate_gif=should_generate_gif)
+    def train_gan(self, part, should_generate_gif=False, num_epochs=None):
+        return self.gans[part].train(should_generate_gif=should_generate_gif, num_epochs=num_epochs)
 
     def generate_melodies(self, specs_list):
         for specs in specs_list:

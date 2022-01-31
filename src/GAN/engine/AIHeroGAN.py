@@ -205,7 +205,7 @@ class AIHeroGAN:
             "generator_loss": gen_loss
         }
 
-    def train(self, should_generate_gif=False, prefix=""):
+    def train(self, should_generate_gif=False, prefix="", num_epochs=None):
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
             dataset = self.training_data.get_as_matrix()
@@ -218,7 +218,8 @@ class AIHeroGAN:
             train_dataset = tf.data.Dataset.from_tensor_slices(dataset).shuffle(BUFFER_SIZE).batch(self.BATCH_SIZE)
 
             current_time_min = 0
-            for epoch in range(self.num_epochs):
+            total_epochs = num_epochs if num_epochs is not None else self.num_epochs
+            for epoch in range(total_epochs):
                 start = time.time()
                 results = None
                 for melody_batch in train_dataset:
@@ -247,7 +248,7 @@ class AIHeroGAN:
                     self.generate_and_save_images(epoch, current_time_min)
 
                 if self.should_verbose():
-                    print(f'Time for epoch {epoch + 1} is {time.time() - start} sec')
+                    print(f'Time for epoch {epoch + 1} is {time.time() - start:.2f} sec')
 
             # get last quality measure
             self._quality_measures.append(self.calculate_quality_measure())

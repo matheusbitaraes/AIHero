@@ -321,7 +321,10 @@ class AIHeroData:
         i = 0
         for composition in self.get_mingus_compositions():
             i += 1
-            midi_file_out.write_Composition(f"{file_name}_{i}.mid", composition[0])
+            if i == 1:
+                midi_file_out.write_Composition(f"{file_name}.mid", composition[0])
+            else:
+                midi_file_out.write_Composition(f"{file_name}_{i}.mid", composition[0])
 
     def append_base_track(self, midi_file):
         base_composition = midi_file_in.MIDI_to_Composition(midi_file)
