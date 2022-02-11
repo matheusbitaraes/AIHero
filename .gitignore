@@ -128,9 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-src/.temp/
-src/GAN/.temp
-src/GAN/test/.temp
+*.temp*
 src/GAN/data/training_checkpoints/
 src/GAN/data/evidences/
 src/resources/generated_melodies/
