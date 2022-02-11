@@ -38,7 +38,7 @@
     "max_generations": 50,
     "tournament_percentage": 0.3,
     "crossover_probability": 0.5,
-    "child_mutation_probability": 0.05,
+    "child_mutation_probability": 0.2,
     "note_change_probability": 0.05,
     "fitness_function_configs": {
       "scale":"minor_blues_scale",

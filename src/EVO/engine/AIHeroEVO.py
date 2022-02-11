@@ -37,12 +37,12 @@ class AIHeroEVO:
 
         genetic_algorithm_melody, fitness_array = self.genetic_algorithm(melody_specs, melody_id=melody_id)
 
-        if self._verbose:
-            print(f"Melody generated in {self._max_generations} generations, with best fitness: {fitness_array[-1]}")
-            print("--------------------------------------------------------------")
-            print("FITNESS GRAPH")
-            plot(range(len(fitness_array)), fitness_array)
-            print("--------------------------------------------------------------")
+        # if self._verbose:
+        #     print(f"Melody generated in {self._max_generations} generations, with best fitness: {fitness_array[-1]}")
+        #     print("--------------------------------------------------------------")
+        #     print("FITNESS GRAPH")
+        #     plot(range(len(fitness_array)), fitness_array)
+        #     print("--------------------------------------------------------------")
         return genetic_algorithm_melody
 
     def genetic_algorithm(self, melody_specs, melody_id=""):
@@ -88,7 +88,7 @@ class AIHeroEVO:
                 for idm in range(children.shape[0]):
                     if random() <= self._pm:
                         melody = self.gan_service.generate_melody(specs=melody_specs, num_melodies=1)
-                        children[idm, :, :] = melody[0, :, :, 0]  # todo: replace by another mutation method?
+                        children[idm, :, :] = melody[0, :, :, 0]
 
                 new_pop[idx:idx + 2] = children
 
@@ -129,9 +129,10 @@ class AIHeroEVO:
         if random() <= self._pc:
             on_beat_cut_point = randrange(int(TIME_DIVISION / 4), TIME_DIVISION,
                                           int(TIME_DIVISION / 4))  # the cutting point happens on a beat
-            child1 = parents[0, :, :]
+            # on_beat_cut_point = int(TIME_DIVISION / 2)
+            child1 = parents[0, :, :].copy()
             child1[:, on_beat_cut_point:] = parents[1, :, on_beat_cut_point:]
-            child2 = parents[1, :, :]
+            child2 = parents[1, :, :].copy()
             child2[:, on_beat_cut_point:] = parents[0, :, on_beat_cut_point:]
             children = np.array([child1, child2])
         else:
