@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.utils.AIHeroGlobals import TIME_DIVISION
+from utils.AIHeroGlobals import TIME_DIVISION
 
 
 class FifthNoteAddStrategy:  # add note five semitons below the not being played

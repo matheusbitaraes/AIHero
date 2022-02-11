@@ -1,4 +1,10 @@
 {
+  "title": "AI Hero",
+  "version": "0.0.1",
+  "uvicorn": {
+    "port": 8080,
+    "host": "0.0.0.0"
+  },
   "generated_evidences_dir": "data/evidences",
   "fluidsynth_path": "../fluidsynth/FluidR3_GM.sf2",
   "verbose": true,

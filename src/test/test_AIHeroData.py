@@ -1,9 +1,10 @@
 from glob import glob
 from unittest import TestCase
 
-from src.data.AIHeroData import AIHeroData
+from data.AIHeroData import AIHeroData
 
 TRAIN_FILES_DIRECTORY = "resources/part_X_manual_3_C_*"
+
 
 class TestAIHeroData(TestCase):
     def setUp(self):

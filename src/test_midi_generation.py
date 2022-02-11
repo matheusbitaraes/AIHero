@@ -3,9 +3,9 @@ from json import load as jload
 
 from mingus.containers import Bar, Composition, Track, Note
 
-from src.GAN.engine.AIHeroGAN import AIHeroGAN
-from src.data.AIHeroData import AIHeroData
-from src.utils.AIHeroEnums import MelodicPart
+from GAN.engine.AIHeroGAN import AIHeroGAN
+from data.AIHeroData import AIHeroData
+from utils.AIHeroEnums import MelodicPart
 
 with open('config.json') as config_file:
     config = jload(config_file)

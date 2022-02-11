@@ -7,10 +7,10 @@ from json import load as jload
 
 import numpy as np
 
-from src.GAN.data.GANTrainingData import GANTrainingData
-from src.GAN.engine.AIHeroGAN import AIHeroGAN
-from src.data.AIHeroData import AIHeroData
-from src.utils.AIHeroEnums import MelodicPart
+from GAN.data.GANTrainingData import GANTrainingData
+from GAN.engine.AIHeroGAN import AIHeroGAN
+from data.AIHeroData import AIHeroData
+from utils.AIHeroEnums import MelodicPart
 
 NUM_SAMPLES = 20
 TRAIN_TEST_RATIO = 1  # leave-one-out

@@ -6,8 +6,8 @@ from json import load as jload
 import uvicorn
 from fastapi import FastAPI, HTTPException
 
-from src.GAN.service.GANService import GANService
-from src.utils.AIHeroEnums import MelodicPart
+from GAN.service.GANService import GANService
+from utils.AIHeroEnums import MelodicPart
 
 with open('config.json') as config_file:
     config = jload(config_file)

@@ -3,9 +3,9 @@ from random import random, randrange
 import numpy as np
 from terminalplot import plot
 
-from src.EVO.engine.Fitness import Fitness
-from src.GAN.service.GANService import GANService
-from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER
+from EVO.engine.Fitness import Fitness
+from GAN.service.GANService import GANService
+from utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER
 
 
 class AIHeroEVO:

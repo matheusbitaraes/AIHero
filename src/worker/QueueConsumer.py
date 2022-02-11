@@ -1,15 +1,10 @@
 import queue
 import threading
 import uuid
-from json import load as jload
 
-import boto3  # pip install boto3
+from service.AIHeroService import AIHeroService
 
-from src.service.AIHeroService import AIHeroService
-from src.utils.AIHeroGlobals import AWS_BUCKET_NAME
-
-with open('config.json') as config_file:
-    config = jload(config_file)
+from model.ApiModels import MelodyRequest
 
 
 class QueueConsumer:
@@ -23,18 +18,20 @@ class QueueConsumer:
         #     print(bucket.name)
         threading.Thread(target=self.worker, daemon=True).start()
 
-    def add_to_queue(self, melody_request):
-        melody_request["id"] = uuid.uuid4()
+    def add_to_queue(self, melody_request_input):
+        melody_request = MelodyRequest(id=uuid.uuid4(),
+                                       source=melody_request_input.source,
+                                       melody_specs_list=melody_request_input.melody_specs_list)
         self.q.put(melody_request)
-        print(f"Adding melody request {melody_request['id']} into queue ")
-        return melody_request["id"]
+        print(f"Adding melody request {melody_request.id} into queue ")
+        return melody_request.id
 
     def worker(self):
         while True:
             item = self.q.get()
-            melody_id = item["id"]
-            source = item["source"]
-            melody_specs_list = item["melody_specs_list"]
+            melody_id = item.id
+            source = item.source
+            melody_specs_list = item.melody_specs_list
             print(f'Working on  melody {melody_id} \n {item}')
             if source == "evo":
                 result = self.ai_hero_service.generate_compositions(melody_specs_list)

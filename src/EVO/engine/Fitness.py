@@ -1,4 +1,4 @@
-from src.EVO.engine.FitnessFunctionMap import FitnessFunctionMap
+from EVO.engine.FitnessFunctionMap import FitnessFunctionMap
 
 
 class Fitness:
@@ -10,8 +10,8 @@ class Fitness:
         fitness = 0
         for function_set in self.function_sets:
             input_vars = {
-                "chord": melody_specs["chord"],
-                "key": melody_specs["key"],
+                "chord": melody_specs.chord,
+                "key": melody_specs.key,
                 "note_sequence": note_sequence,
                 "weight": function_set["weight"]
             }

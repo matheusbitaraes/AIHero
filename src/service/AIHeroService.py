@@ -3,11 +3,11 @@ import traceback
 
 import numpy as np
 
-from src.EVO.service.EVOService import EVOService
-from src.GAN.data.GANTrainingData import GANTrainingData
-from src.GAN.service.GANService import GANService
-from src.data.AIHeroData import AIHeroData
-from src.utils.AIHeroEnums import MelodicPart
+from EVO.service.EVOService import EVOService
+from GAN.data.GANTrainingData import GANTrainingData
+from GAN.service.GANService import GANService
+from data.AIHeroData import AIHeroData
+from utils.AIHeroEnums import MelodicPart
 
 
 class AIHeroService:
@@ -21,7 +21,7 @@ class AIHeroService:
         try:
             for melody_specs in melody_specs_list:
                 raw_melody = self.gan_service.generate_melody(specs=melody_specs)
-                melody_tuples.append((raw_melody, melody_specs["chord"]))
+                melody_tuples.append((raw_melody, melody_specs.chord))
             ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
         except Exception as e:
             print(f"Exception in AI Hero Service: Cannot Generate Melody: {e}")
@@ -34,7 +34,7 @@ class AIHeroService:
         try:
             for melody_specs in melody_specs_list:
                 raw_melody = self.evo_service.generate_melody(specs=melody_specs)
-                melody_tuples.append((raw_melody, melody_specs["chord"]))
+                melody_tuples.append((raw_melody, melody_specs.chord))
             ai_hero_data.load_from_EVO_melody_raw(melody_tuples)
         except Exception as e:
             print(f"Exception in AI Hero Service: Cannot Generate Melody: {e}")
@@ -47,7 +47,7 @@ class AIHeroService:
         try:
             for melody_specs in melody_specs_list:
                 raw_melody = self.gan_service.get_random_train_data(specs=melody_specs)
-                melody_tuples.append((raw_melody, melody_specs["chord"]))
+                melody_tuples.append((raw_melody, melody_specs.chord))
             ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
         except Exception as e:
             print(f"Exception in AI Hero Service: Cannot generate melody from GAN training data: {e}")

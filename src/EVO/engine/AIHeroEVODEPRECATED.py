@@ -3,9 +3,9 @@ from random import random, randrange
 import numpy as np
 from mingus.containers import Bar, Track
 
-from src.EVO.engine.Fitness import Fitness
+from EVO.engine.Fitness import Fitness
 from mingus.containers.note import Note
-from src.EVO.resources.resources import *
+from EVO.resources.resources import *
 import matplotlib.pyplot as plt
 
 

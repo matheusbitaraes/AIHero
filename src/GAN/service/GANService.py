@@ -1,8 +1,8 @@
 import traceback
 
-from src.GAN.engine.AIHeroGAN import AIHeroGAN
-from src.GAN.exceptions.GANExceptions import GanTrainingException
-from src.utils.AIHeroEnums import MelodicPart
+from GAN.engine.AIHeroGAN import AIHeroGAN
+from GAN.exceptions.GANExceptions import GanTrainingException
+from utils.AIHeroEnums import MelodicPart
 
 
 class GANService:
@@ -27,7 +27,7 @@ class GANService:
             return self.generate_melody(specs)
 
     def generate_melody(self, specs=None, num_melodies=1):
-        melodic_part = MelodicPart(specs["melodic_part"])
+        melodic_part = MelodicPart(specs.melodic_part)
         try:
             gan = self.gans[melodic_part.value]
             return gan.generate_melody_matrix(num_melodies=num_melodies, new_seed=True)

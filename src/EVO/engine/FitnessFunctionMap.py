@@ -1,7 +1,7 @@
 import numpy as np
 from mingus.core import notes
 
-from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER
+from utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER
 import mingus.core.chords as chords
 
 

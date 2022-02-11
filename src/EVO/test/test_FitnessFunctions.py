@@ -1,9 +1,9 @@
 from glob import glob
 from unittest import TestCase
 
-from src.EVO.engine.FitnessFunctionMap import notes_on_same_chord_key, notes_on_beat_rate, intervals_percentage, \
+from EVO.engine.FitnessFunctionMap import notes_on_same_chord_key, notes_on_beat_rate, intervals_percentage, \
     note_repetitions_rate, pitch_proximity_rate, note_variety_rate
-from src.data.AIHeroData import AIHeroData
+from data.AIHeroData import AIHeroData
 
 
 class TestFitnessFunctions(TestCase):

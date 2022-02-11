@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.utils.AIHeroGlobals import SCALED_NOTES_RANGE, NOTES_IN_OCTAVE, TIME_DIVISION, SCALED_NOTES_NUMBER
+from utils.AIHeroGlobals import SCALED_NOTES_RANGE, NOTES_IN_OCTAVE, TIME_DIVISION, SCALED_NOTES_NUMBER
 
 
 class NoteJoinStrategy:  # join same notes in sequence. If there is none, duplicate the matrix

@@ -11,10 +11,10 @@ from mingus.containers import Track
 import mingus.extra.lilypond as LilyPond
 import time
 
-from src.EVO.engine.AIHeroEVO import AIHero
-from src.synth.AISynthDEPRECATED import AISynth
-from src.EVO.engine.Fitness import Fitness
-from src.EVO.resources.resources import *
+from EVO.engine.AIHeroEVO import AIHero
+from synth.AISynthDEPRECATED import AISynth
+from EVO.engine.Fitness import Fitness
+from EVO.resources.resources import *
 
 
 # GUI STANDARD DEFINITIONS
