@@ -148,6 +148,8 @@ class AIHeroEVO:
     def generate_and_save_images(self, epoch, melody, fitness, current_time_min, filename_prefix):
 
         fig, axs = plt.subplots(2)
+        fig.set_figheight(10)
+        fig.set_figwidth(5)
         fig.suptitle(f'Training progress for generation {epoch} ({round(current_time_min, 2)} min)')
 
         # midi plot
