@@ -319,12 +319,17 @@ class AIHeroData:
 
     def export_as_midi(self, path='', file_name="teste"):
         i = 0
-        for composition in self.get_mingus_compositions():
-            i += 1
-            if i == 1:
-                midi_file_out.write_Composition(f"{file_name}.mid", composition[0])
-            else:
-                midi_file_out.write_Composition(f"{file_name}_{i}.mid", composition[0])
+        try:
+            compositions = self.get_mingus_compositions()
+            for composition in compositions:
+                i += 1
+                if i == 1:
+                    midi_file_out.write_Composition(f"{file_name}.mid", composition[0])
+                else:
+                    midi_file_out.write_Composition(f"{file_name}_{i}.mid", composition[0])
+        except Exception as e:
+            print(f"Failed exporting as midi: {e}")
+            print(traceback.format_exc())
 
     def append_base_track(self, midi_file):
         base_composition = midi_file_in.MIDI_to_Composition(midi_file)

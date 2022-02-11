@@ -71,12 +71,6 @@ class AIHeroGAN:
         if self._should_use_checkpoint:
             self.load_from_checkpoint()
 
-        # if tf.config.list_physical_devices('GPU'):
-        #     physical_devices = tf.config.list_physical_devices('GPU')
-        #     tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
-            # tf.config.experimental.set_virtual_device_configuration(physical_devices[0], [
-            #     tf.config.experimental.VirtualDeviceConfiguration(memory_limit=3000)])
-
     def load_from_checkpoint(self):
         if self.should_verbose():
             print(f"loading checkpoint for gan of part {self.part_type}...")

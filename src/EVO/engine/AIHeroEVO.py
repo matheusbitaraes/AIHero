@@ -1,11 +1,17 @@
+import glob
+import os
+import time
+from datetime import date
 from random import random, randrange
 
+import imageio
 import numpy as np
-from terminalplot import plot
-
 from EVO.engine.Fitness import Fitness
 from GAN.service.GANService import GANService
-from utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER
+from IPython import display
+from matplotlib import pyplot as plt
+from terminalplot import plot
+from utils.AIHeroGlobals import SCALED_NOTES_RANGE, TIME_DIVISION, SCALED_NOTES_NUMBER
 
 
 class AIHeroEVO:
@@ -13,6 +19,7 @@ class AIHeroEVO:
         self.gan_service = GANService(config)
         self.fitness_function = Fitness(config["evolutionary_algorithm_configs"]["fitness_function_configs"])
 
+        self.gifs_evidence_dir = config["generated_evidences_dir"]
         self._verbose = config["verbose"]
         self._max_generations = config["evolutionary_algorithm_configs"]["max_generations"]
         self._pop_size = config["evolutionary_algorithm_configs"]["population_size"]
@@ -22,12 +29,13 @@ class AIHeroEVO:
         self._pm = config["evolutionary_algorithm_configs"]["child_mutation_probability"]  # child mutation probability
         self._pnm = config["evolutionary_algorithm_configs"][
             "note_change_probability"]  # probability of changing a note when a child is going on mutation
+        self.should_generate_gif = self._verbose
 
-    def generate_melody(self, melody_specs):
+    def generate_melody(self, melody_specs, melody_id=""):
         if self._verbose:
             print(f"\n\nExecuting Evolutionary Algorithm for specs: {melody_specs} ...")
 
-        genetic_algorithm_melody, fitness_array = self.genetic_algorithm(melody_specs)
+        genetic_algorithm_melody, fitness_array = self.genetic_algorithm(melody_specs, melody_id=melody_id)
 
         if self._verbose:
             print(f"Melody generated in {self._max_generations} generations, with best fitness: {fitness_array[-1]}")
@@ -37,16 +45,20 @@ class AIHeroEVO:
             print("--------------------------------------------------------------")
         return genetic_algorithm_melody
 
-    def genetic_algorithm(self, melody_specs):
+    def genetic_algorithm(self, melody_specs, melody_id=""):
         fitness = np.zeros(self._pop_size)
         best_individual = None
         best_fitness = []
+
+        filename_prefix = melody_id
 
         # initiate population
         pop = self.generate_population_with_gan(melody_specs)
 
         # generation loop
+        current_time_min = 0
         for t in range(0, self._max_generations):
+            start = time.time()
 
             # fitness calculation
             for j in range(0, self._pop_size):
@@ -54,6 +66,14 @@ class AIHeroEVO:
 
             best_fitness.append(fitness[np.argsort(-fitness)[0]])
             best_individual = pop[np.argsort(-fitness)[0]]
+
+            current_time_min = current_time_min + (time.time() - start) / 60
+            if self.should_generate_gif:
+                self.generate_and_save_images(epoch=t,
+                                              melody=best_individual,
+                                              fitness=best_fitness,
+                                              current_time_min=current_time_min,
+                                              filename_prefix=filename_prefix)
 
             idx = 0
             new_pop = pop * 0
@@ -76,6 +96,13 @@ class AIHeroEVO:
 
             pop = new_pop
 
+        if self.should_generate_gif:
+            display.clear_output(wait=True)
+            self.generate_gif(filename_prefix=filename_prefix)
+
+            # erase temporary images
+            for f in glob.glob(f'.temp/{filename_prefix}*.png'):
+                os.remove(f)
         return best_individual, best_fitness
 
     def generate_population_with_gan(self, melody_specs):
@@ -83,52 +110,6 @@ class AIHeroEVO:
         melodies = self.gan_service.generate_melody(specs=melody_specs, num_melodies=self._pop_size)
         pop[:, :, :] = melodies[:, :, :, 0]
         return pop
-
-    # def generate_random_population(self, melody_specs):
-    #     should_apply_rythmic_pattern = False
-    #     compass_chord = melody_specs['chord']
-    #
-    #     total_notes = TIME_DIVISION
-    #     octave1 = [x + 12 for x in self.scale][1:]
-    #     octave2 = [x + 12 for x in octave1][1:]
-    #     expanded_scale = np.append(self.scale, np.append(octave1, octave2))
-    #
-    #     pop = np.zeros([self._pop_size, total_notes])
-    #     for j in range(0, self._pop_size):
-    #         indexes = np.random.randint(len(expanded_scale), size=total_notes)
-    #         notes_of_scale = np.array(expanded_scale)[indexes.astype(int)]
-    #         octave1 = [x + 12 for x in chords[compass_chord]][1:]
-    #         octave2 = [x + 12 for x in octave1][1:]
-    #         # chord_notes = np.append(self.scale, np.append(octave1, octave2))
-    #
-    #         for idn in range(0, len(notes_of_scale)):
-    #             reduced_scale = expanded_scale[abs(expanded_scale - notes_of_scale[idn - 1]) < self.next_note_range]
-    #
-    #             if should_apply_rythmic_pattern:
-    #                 notes_of_scale[idn] = reduced_scale[
-    #                     np.random.randint(len(reduced_scale))]  # insert scale aleatory note
-    #             else:
-    #                 if random() > self.interval_prob:
-    #                     notes_of_scale[idn] = reduced_scale[
-    #                         np.random.randint(len(reduced_scale))]  # insert scale aleatory note
-    #                 else:
-    #                     notes_of_scale[idn] = -1
-    #
-    #         # Aplica padrões ritmicos
-    #         if should_apply_rythmic_pattern:
-    #             rp = rhythmic_patterns[str(self.pulses_on_compass)]
-    #             rhythmic_pattern = notes_of_scale * 0
-    #             for idr in range(0, self.pulses_on_compass):
-    #                 a = idr * self.fuse
-    #                 b = (idr + 1) * self.fuse
-    #                 rhythmic_pattern[a:b] = rp[
-    #                     round(randrange(len(rp)))]  # chooses an aleatory  rithmic pattern from pattern database
-    #
-    #             notes_of_scale[rhythmic_pattern < 0] = -1
-    #
-    #         pop[j] = notes_of_scale
-    #
-    #     return pop
 
     def tournament(self, pop, fitness, num_parents):
         n_participants = round(len(pop) * self._k)
@@ -163,3 +144,36 @@ class AIHeroEVO:
             if child[i] != -1 and random() < self._pnm:
                 child[i] = child[i] - randrange(8) + 4
         return child
+
+    def generate_and_save_images(self, epoch, melody, fitness, current_time_min, filename_prefix):
+
+        fig, axs = plt.subplots(2)
+        fig.suptitle(f'Training progress for generation {epoch} ({round(current_time_min, 2)} min)')
+
+        # midi plot
+        axs[0].imshow(melody, cmap='Blues')
+        axs[0].axis([0,  TIME_DIVISION, SCALED_NOTES_RANGE[0],
+                     SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
+        axs[0].set(xlabel='Time Division', ylabel='MIDI Notes')
+
+        # fitness plot
+        num_measures = len(fitness)
+        axs[1].plot(range(num_measures), fitness)
+        axs[1].legend(["Fitness: {:03f}".format(fitness[-1])])
+        axs[1].set(xlabel='Epochs', ylabel='FID')
+
+        plt.savefig('.temp/{}_epoch_{:04d}.png'.format(filename_prefix, epoch))
+        plt.close()
+
+    def generate_gif(self, filename_prefix=""):
+        today = date.today()
+        anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
+
+        with imageio.get_writer(anim_file, mode='I') as writer:
+            filenames = glob.glob(f'.temp/{filename_prefix}*.png')
+            filenames = sorted(filenames)
+            for filename in filenames:
+                image = imageio.imread(filename)
+                writer.append_data(image)
+            image = imageio.imread(filename)
+            writer.append_data(image)
