@@ -1,7 +1,7 @@
 from glob import glob
 from unittest import TestCase
 
-from EVO.engine.FitnessFunctionMap import notes_on_same_chord_key, notes_on_beat_rate, intervals_percentage, \
+from EVO.engine.FitnessFunctionMap import notes_on_same_chord_key, notes_on_beat_rate, note_on_density, \
     note_repetitions_rate, pitch_proximity_rate, note_variety_rate
 from data.AIHeroData import AIHeroData
 
@@ -49,9 +49,9 @@ class TestFitnessFunctions(TestCase):
             test_function(function=func, input_dict=fixed_input_values, file_path=glob(f"resources/{type_name}_low*")),
             FITNESS_LOW)
 
-    def test_intervals_percentage(self):
-        type_name = "intervals_percentage"
-        func = intervals_percentage
+    def test_note_on_density(self):
+        type_name = "note_on_density"
+        func = note_on_density
         FITNESS_HIGH = [1, 1, 1]
         FITNESS_LOW = [0, 0]
         FITNESS_MEDIUM = [0.38095238095238093, 0.6333333333333333]

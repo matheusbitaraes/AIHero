@@ -6,28 +6,22 @@ import mingus.core.chords as chords
 
 
 class FitnessFunctionMap:
-    def __init__(self, name):
-        self.f = get_function_by_name(name)
+    def __init__(self):
+        self.map = {
+            "notes_on_same_chord_key": notes_on_same_chord_key,
+            "notes_on_beat_rate": notes_on_beat_rate,
+            "note_on_density": note_on_density,
+            "note_variety_rate": note_variety_rate,
+            "note_repetitions_rate": note_repetitions_rate,
+            "pitch_proximity": pitch_proximity_rate,
+            "note_sequence_rate": note_sequence_rate,
+            "notes_out_of_scale_rate": notes_out_of_scale_rate,
+            "single_notes_rate": single_notes_rate,  # notas unicas, que não são triades ou duplas
+        }
 
     def eval(self, input_values):
-        return self.f(input_values)
-
-
-def get_function_by_name(name):
-    if name == "notes_on_same_chord_key":
-        return notes_on_same_chord_key
-    elif name == "notes_on_beat_rate":
-        return notes_on_beat_rate
-    elif name == "intervals_percentage":
-        return intervals_percentage
-    elif name == "note_repetitions_rate":
-        return note_repetitions_rate
-    elif name == "pitch_proximity":
-        return pitch_proximity_rate
-    elif name == "note_sequence_rate":
-        return note_sequence_rate
-    else:
-        return none_function
+        name = input_values["name"]
+        return self.map[name](input_values)
 
 
 def notes_on_same_chord_key(input_values):
@@ -38,7 +32,7 @@ def notes_on_same_chord_key(input_values):
 
     # function
     total_notes = len(note_sequence[note_sequence == 1])
-    chord_note_lines = note_sequence[chord_notes, :]
+    chord_note_lines = note_sequence[chord_notes, :].copy()
     notes_on_chord = len(chord_note_lines[chord_note_lines == 1])
     if total_notes != 0:
         return weight * notes_on_chord / total_notes
@@ -54,8 +48,8 @@ def notes_on_beat_rate(input_values):
     # strategy for reducing notes to its fist value appearing on row. So, [-1, -1, 1, 1, 1, 1] will be transformed
     # into [-1, -1, 1, -1, -1, -1] because we are interested only in the beginning of the note
     translated_note_sequence = np.zeros(note_sequence.shape)
-    translated_note_sequence[:, 1:] = note_sequence[:, 0: note_sequence.shape[1] - 1]
-    translated_note_sequence[:, 0] = note_sequence[:, -1]
+    translated_note_sequence[:, 1:] = note_sequence[:, 0: note_sequence.shape[1] - 1].copy()
+    translated_note_sequence[:, 0] = note_sequence[:, -1].copy()
     note_sequence = note_sequence - translated_note_sequence - 1
 
     total_notes = len(note_sequence[note_sequence == 1])
@@ -68,19 +62,20 @@ def notes_on_beat_rate(input_values):
         return 0
 
 
-def intervals_percentage(input_values):
+def note_on_density(input_values):
     # input values
     weight = input_values["weight"]
     note_sequence = input_values["note_sequence"]
 
-    PERCENTAGE_BOUNDARIES = [0.05, 0.6]
+    PERCENTAGE_BOUNDARIES = [0.2, 0.8]
 
     note_sums = np.sum(note_sequence, 0)  # sum over y axis
 
-    total_intervals = len(note_sums[note_sums == -1 * SCALED_NOTES_NUMBER])
-    if total_intervals != 0:
-        interval_percentage = total_intervals/TIME_DIVISION
-        normalized_value = (interval_percentage - PERCENTAGE_BOUNDARIES[0]) /(PERCENTAGE_BOUNDARIES[1] - PERCENTAGE_BOUNDARIES[0])
+    total_note_on = len(note_sums[note_sums != -1 * SCALED_NOTES_NUMBER])
+    if total_note_on != 0:
+        note_on_percentage = total_note_on / TIME_DIVISION
+        normalized_value = (note_on_percentage - PERCENTAGE_BOUNDARIES[0]) / (
+                PERCENTAGE_BOUNDARIES[1] - PERCENTAGE_BOUNDARIES[0])
         normalized_perc = max(0, min(1, normalized_value))
         return weight * normalized_perc
     else:
@@ -98,12 +93,44 @@ def note_variety_rate(input_values):
 
     total_rows_with_notes = len(note_sums[note_sums != -1 * TIME_DIVISION])
     if total_rows_with_notes != 0:
-        note_variety_percentage = total_rows_with_notes/SCALED_NOTES_NUMBER
-        normalized_value = (note_variety_percentage - PERCENTAGE_BOUNDARIES[0]) /(PERCENTAGE_BOUNDARIES[1] - PERCENTAGE_BOUNDARIES[0])
+        note_variety_percentage = total_rows_with_notes / SCALED_NOTES_NUMBER
+        normalized_value = (note_variety_percentage - PERCENTAGE_BOUNDARIES[0]) / (
+                PERCENTAGE_BOUNDARIES[1] - PERCENTAGE_BOUNDARIES[0])
         normalized_perc = max(0, min(1, normalized_value))
         return weight * normalized_perc
     else:
         return 0
+
+
+def single_notes_rate(input_values):
+    # input values
+    weight = input_values["weight"]
+    note_sequence = input_values["note_sequence"]
+
+    PERCENTAGE_BOUNDARIES = [0.3, 1]
+
+    note_sums = np.sum(note_sequence, 0)  # sum over y axis
+
+    total_note_on = len(note_sums[note_sums != -1 * SCALED_NOTES_NUMBER])
+    total_single_notes = len(note_sums[note_sums == -1 * (SCALED_NOTES_NUMBER - 2)])
+    if total_single_notes != 0:
+        note_on_percentage = total_single_notes / total_note_on
+        normalized_value = (note_on_percentage - PERCENTAGE_BOUNDARIES[0]) / (
+                PERCENTAGE_BOUNDARIES[1] - PERCENTAGE_BOUNDARIES[0])
+        normalized_perc = max(0, min(1, normalized_value))
+        return weight * normalized_perc
+    else:
+        return 0
+
+    return 0
+
+
+def notes_out_of_scale_rate(input_values):
+    # input values
+    weight = input_values["weight"]
+    note_sequence = input_values["note_sequence"]
+
+    return 0
 
 
 def note_repetitions_rate(input_values):
@@ -115,10 +142,6 @@ def pitch_proximity_rate(input_values):
 
 
 def note_sequence_rate(input_values):
-    return 0
-
-
-def none_function(input_values):
     return 0
 
 
