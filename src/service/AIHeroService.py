@@ -15,7 +15,7 @@ class AIHeroService:
         self.gan_service = GANService(config)
         self.evo_service = EVOService(config)
 
-    def generate_GAN_compositions(self, melody_specs_list, melody_id):
+    def generate_GAN_compositions(self, melody_specs_list, melody_id, harmony_file=None):
         ai_hero_data = AIHeroData()
         melody_tuples = []
         try:
@@ -23,12 +23,14 @@ class AIHeroService:
                 raw_melody = self.gan_service.generate_melody(specs=melody_specs, melody_id=melody_id)
                 melody_tuples.append((raw_melody, melody_specs.chord))
             ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
+            if harmony_file is not None:
+                ai_hero_data.append_base_track(harmony_file)
         except Exception as e:
             print(f"Exception in AI Hero Service: Cannot Generate Melody: {e}")
             print(traceback.format_exc())
         return ai_hero_data
 
-    def generate_compositions(self, melody_specs_list, melody_id=""):
+    def generate_compositions(self, melody_specs_list, melody_id="", harmony_file=None):
         ai_hero_data = AIHeroData()
         melody_tuples = []
         try:
@@ -36,19 +38,23 @@ class AIHeroService:
                 raw_melody = self.evo_service.generate_melody(specs=melody_specs, melody_id=melody_id)
                 melody_tuples.append((raw_melody, melody_specs.chord))
             ai_hero_data.load_from_EVO_melody_raw(melody_tuples)
+            if harmony_file is not None:
+                ai_hero_data.append_base_track(harmony_file)
         except Exception as e:
             print(f"Exception in AI Hero Service: Cannot Generate Melody: {e}")
             print(traceback.format_exc())
         return ai_hero_data
 
-    def generate_compositions_with_train_data(self, melody_specs_list, id=""):
+    def generate_compositions_with_train_data(self, melody_specs_list, melody_id="", harmony_file=None):
         ai_hero_data = AIHeroData()
         melody_tuples = []
         try:
             for melody_specs in melody_specs_list:
-                raw_melody = self.gan_service.get_random_train_data(specs=melody_specs, id=id)
+                raw_melody = self.gan_service.get_random_train_data(specs=melody_specs, melody_id=melody_id)
                 melody_tuples.append((raw_melody, melody_specs.chord))
             ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
+            if harmony_file is not None:
+                ai_hero_data.append_base_track(harmony_file)
         except Exception as e:
             print(f"Exception in AI Hero Service: Cannot generate melody from GAN training data: {e}")
             print(traceback.format_exc())

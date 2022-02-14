@@ -2,47 +2,45 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: ai-hero-api
-  name: ai-hero-api
+    app: ai-hero
+  name: ai-hero
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: ai-hero-api
+      app: ai-hero
   strategy:
-    rollingUpdaate:
+    rollingUpdate:
       maxSurge: 25%
       maxUnavailable: 25%
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: ai-hero-api
+        app: ai-hero
     spec:
       containers:
-        - image: ai-hero-api
-          imagePullPolicy: Never
-          name: ai-hero-api
+        - image: ai-hero:latest
+          imagePullPolicy: IfNotPresent
+          name: ai-hero
           terminationMessagePath: /dev/termination-log
-          teminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      terminarionGracePeriodSeconds: 30
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: ai-hero-api
-  name: ai-hero-api
+    app: ai-hero
+  name: ai-hero
 spec:
-  externalTrafficPolicy: cluster
+  externalTrafficPolicy: Cluster
   type: NodePort
   selector:
-    app: ai-hero-api
+    app: ai-hero
   ports:
     - port: 8080
       targetPort: 8080

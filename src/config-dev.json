@@ -7,7 +7,7 @@
   },
   "generated_evidences_dir": "src/resources/generated_melodies_evidences",
   "fluidsynth_path": "fluidsynth/FluidR3_GM.sf2",
-  "verbose": false,
+  "verbose": true,
   "checkpoint": {
     "use_checkpoint": true,
     "checkpoint_folder": "src/GAN/data/training_checkpoints"

@@ -20,6 +20,10 @@ def create_app():
 
     app = FastAPI()
 
+    @app.get('/healthy')
+    def getHealthy():
+        return {"message": "ok"}
+
     @app.post('/melody', response_model=MelodyRequestResponse)
     def getMelodies(melody_specs_list: list = DEFAULT_MELODY_REQUEST, source: str = "evo"):
         if source not in AVAILABLE_SOURCES:
