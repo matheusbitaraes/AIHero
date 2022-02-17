@@ -9,8 +9,9 @@ import numpy as np
 from EVO.engine.Fitness import Fitness
 from GAN.service.GANService import GANService
 from IPython import display
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
-from terminalplot import plot
 from utils.AIHeroGlobals import SCALED_NOTES_RANGE, TIME_DIVISION, SCALED_NOTES_NUMBER
 
 
@@ -29,21 +30,17 @@ class AIHeroEVO:
         self._pm = config["evolutionary_algorithm_configs"]["child_mutation_probability"]  # child mutation probability
         self._pnm = config["evolutionary_algorithm_configs"][
             "note_change_probability"]  # probability of changing a note when a child is going on mutation
-        self.should_generate_gif = self._verbose
+        self.should_generate_gif = self._verbose and not config["enable_parallelization"]
 
     def generate_melody(self, melody_specs, melody_id=""):
         if self._verbose:
             print(f"\n\nExecuting Evolutionary Algorithm for specs: {melody_specs} ...")
 
         genetic_algorithm_melody, fitness_array = self.genetic_algorithm(melody_specs, melody_id=melody_id)
-
-        # if self._verbose:
-        #     print(f"Melody generated in {self._max_generations} generations, with best fitness: {fitness_array[-1]}")
-        #     print("--------------------------------------------------------------")
-        #     print("FITNESS GRAPH")
-        #     plot(range(len(fitness_array)), fitness_array)
-        #     print("--------------------------------------------------------------")
         return genetic_algorithm_melody
+
+    def update_fitness_functions(self, fitness_function_configs):
+        self.fitness_function = Fitness(fitness_function_configs)
 
     def genetic_algorithm(self, melody_specs, melody_id=""):
         fitness = np.zeros(self._pop_size)

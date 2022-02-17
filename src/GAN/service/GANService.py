@@ -26,7 +26,7 @@ class GANService:
         for specs in specs_list:
             return self.generate_melody(specs)
 
-    def generate_melody(self, specs=None, num_melodies=1):
+    def generate_melody(self, specs=None, num_melodies=1, melody_id=""):
         melodic_part = MelodicPart(specs.melodic_part)
         try:
             gan = self.gans[melodic_part.value]

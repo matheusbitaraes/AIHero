@@ -3,6 +3,8 @@ import traceback
 
 import mingus.core.notes as notes
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from mingus.containers import Bar, Note, Track, Composition, NoteContainer
 from mingus.midi import midi_file_in, midi_file_out

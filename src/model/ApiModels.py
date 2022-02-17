@@ -20,19 +20,31 @@ class MelodyRequestResponse(BaseModel):
     melody_url: str
 
 
-class MelodySpecs(BaseModel):
+class HarmonySpecs(BaseModel):
     melodic_part: str
     chord: str
     key: str
     tempo: int
 
 
+class FitnessFunction(BaseModel):
+    key: str
+    name: str
+    description: str
+    value: float
+
+
+class MelodySpecs(BaseModel):
+    harmony_specs: List[HarmonySpecs]
+    evolutionary_specs: List[FitnessFunction]
+
+
 class MelodyRequestInput(BaseModel):
     source: str
-    melody_specs_list: List[MelodySpecs]
+    melody_specs: MelodySpecs
 
 
 class MelodyRequest(BaseModel):
     id: UUID
     source: str
-    melody_specs_list: List[MelodySpecs]
+    melody_specs: MelodySpecs

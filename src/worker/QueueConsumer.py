@@ -21,7 +21,7 @@ class QueueConsumer:
     def add_to_queue(self, melody_request_input):
         melody_request = MelodyRequest(id=uuid.uuid4(),
                                        source=melody_request_input.source,
-                                       melody_specs_list=melody_request_input.melody_specs_list)
+                                       melody_specs=melody_request_input.melody_specs)
         self.q.put(melody_request)
         print(f"Adding melody request {melody_request.id} into queue ")
         return melody_request.id
@@ -31,21 +31,21 @@ class QueueConsumer:
             item = self.q.get()
             melody_id = item.id
             source = item.source
-            melody_specs_list = item.melody_specs_list
+            harmony_specs = item.melody_specs.harmony_specs
             harmony_file = "src/resources/blues_base.mid"  # todo criar algum tipo de mapa para resolver isso
             print(f'Working on  melody {melody_id} \n {item}')
             if source == "evo":
-                result = self.ai_hero_service.generate_compositions(melody_specs_list,
+                result = self.ai_hero_service.generate_compositions(harmony_specs,
                                                                     melody_id=melody_id,
                                                                     harmony_file=harmony_file)
                 result.export_as_midi(file_name=f"{self.melody_path}/{melody_id}")
             if source == "gan":
-                result = self.ai_hero_service.generate_GAN_compositions(melody_specs_list,
+                result = self.ai_hero_service.generate_GAN_compositions(harmony_specs,
                                                                         melody_id=melody_id,
                                                                         harmony_file=harmony_file)
                 result.export_as_midi(file_name=f"{self.melody_path}/{melody_id}")
             if source == "train":
-                result = self.ai_hero_service.generate_compositions_with_train_data(melody_specs_list,
+                result = self.ai_hero_service.generate_compositions_with_train_data(harmony_specs,
                                                                                     melody_id=melody_id,
                                                                                     harmony_file=harmony_file)
                 result.export_as_midi(file_name=f"{self.melody_path}/{melody_id}")
