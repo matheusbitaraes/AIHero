@@ -23,6 +23,9 @@ class FitnessFunctionMap:
         name = input_values["name"]
         return self.map[name](input_values)
 
+    def keys(self):
+        return self.map.keys()
+
 
 def notes_on_same_chord_key(input_values):
     # input values

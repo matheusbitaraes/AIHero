@@ -5,11 +5,12 @@ from datetime import date
 from random import random, randrange
 
 import imageio
+import matplotlib
 import numpy as np
 from EVO.engine.Fitness import Fitness
 from GAN.service.GANService import GANService
 from IPython import display
-import matplotlib
+
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from utils.AIHeroGlobals import SCALED_NOTES_RANGE, TIME_DIVISION, SCALED_NOTES_NUMBER
@@ -40,12 +41,13 @@ class AIHeroEVO:
         return genetic_algorithm_melody
 
     def update_fitness_functions(self, fitness_function_configs):
-        self.fitness_function = Fitness(fitness_function_configs)
+        self.fitness_function.update_configs(fitness_function_configs)
 
     def genetic_algorithm(self, melody_specs, melody_id=""):
         fitness = np.zeros(self._pop_size)
         best_individual = None
         best_fitness = []
+        best_fitness_per_function = []
 
         filename_prefix = melody_id
 
@@ -59,9 +61,10 @@ class AIHeroEVO:
 
             # fitness calculation
             for j in range(0, self._pop_size):
-                fitness[j] = self.fitness_function.eval(pop[j, :, :], melody_specs)
+                fitness[j], fitness_per_function = self.fitness_function.eval(pop[j, :, :], melody_specs)
 
             best_fitness.append(fitness[np.argsort(-fitness)[0]])
+            best_fitness_per_function.append(fitness_per_function)
             best_individual = pop[np.argsort(-fitness)[0]]
 
             current_time_min = current_time_min + (time.time() - start) / 60
@@ -69,6 +72,8 @@ class AIHeroEVO:
                 self.generate_and_save_images(epoch=t,
                                               melody=best_individual,
                                               fitness=best_fitness,
+                                              fitness_per_function=best_fitness_per_function,
+                                              fitness_function_names=self.fitness_function.get_function_names(),
                                               current_time_min=current_time_min,
                                               filename_prefix=filename_prefix)
 
@@ -143,16 +148,18 @@ class AIHeroEVO:
                 child[i] = child[i] - randrange(8) + 4
         return child
 
-    def generate_and_save_images(self, epoch, melody, fitness, current_time_min, filename_prefix):
+    def generate_and_save_images(self, epoch, melody, fitness, fitness_per_function, fitness_function_names, current_time_min, filename_prefix):
 
+        # fig, axs = plt.subplots(3)
         fig, axs = plt.subplots(2)
         fig.set_figheight(10)
         fig.set_figwidth(5)
+        # fig.set_figwidth(10)
         fig.suptitle(f'Training progress for generation {epoch} ({round(current_time_min, 2)} min)')
 
         # midi plot
         axs[0].imshow(melody, cmap='Blues')
-        axs[0].axis([0,  TIME_DIVISION, SCALED_NOTES_RANGE[0],
+        axs[0].axis([0, TIME_DIVISION, SCALED_NOTES_RANGE[0],
                      SCALED_NOTES_RANGE[1]])  # necessary for inverting y axis
         axs[0].set(xlabel='Time Division', ylabel='MIDI Notes')
 
@@ -160,13 +167,20 @@ class AIHeroEVO:
         num_measures = len(fitness)
         axs[1].plot(range(num_measures), fitness)
         axs[1].legend(["Fitness: {:03f}".format(fitness[-1])])
-        axs[1].set(xlabel='Epochs', ylabel='FID')
+        axs[1].set(xlabel='Epochs', ylabel='Fitness')
+
+        # # fitness per function plot
+        # num_measures = len(fitness_per_function)
+        # axs[2].plot(range(num_measures), fitness_per_function)
+        # axs[2].legend(fitness_function_names)
+        # axs[2].set(xlabel='Epochs', ylabel='Fitness')
 
         plt.savefig('.temp/{}_epoch_{:04d}.png'.format(filename_prefix, epoch))
         plt.close()
 
     def generate_gif(self, filename_prefix=""):
         today = date.today()
+        # anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}_{today.strftime("%Y%m%d")}_{time.time_ns()}.mp4'
         anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
 
         with imageio.get_writer(anim_file, mode='I') as writer:

@@ -32,10 +32,12 @@ class QueueConsumer:
             melody_id = item.id
             source = item.source
             harmony_specs = item.melody_specs.harmony_specs
+            evolutionary_specs = item.melody_specs.evolutionary_specs
             harmony_file = "src/resources/blues_base.mid"  # todo criar algum tipo de mapa para resolver isso
             print(f'Working on  melody {melody_id} \n {item}')
             if source == "evo":
                 result = self.ai_hero_service.generate_compositions(harmony_specs,
+                                                                    evolutionary_specs=evolutionary_specs,
                                                                     melody_id=melody_id,
                                                                     harmony_file=harmony_file)
                 result.export_as_midi(file_name=f"{self.melody_path}/{melody_id}")
