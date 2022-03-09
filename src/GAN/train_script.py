@@ -1,7 +1,7 @@
 from json import load as jload
 
-from GAN.service.GANService import GANService
-from utils.AIHeroEnums import MelodicPart
+from src.GAN.service.GANService import GANService
+from src.utils.AIHeroEnums import MelodicPart
 
 with open('config.json') as config_file:
     config = jload(config_file)

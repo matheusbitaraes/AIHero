@@ -2,7 +2,7 @@ import concurrent.futures
 import traceback
 
 from EVO.service.EVOService import EVOService
-from GAN.service.GANService import GANService
+from src.GAN.service.GANService import GANService
 from data.AIHeroData import AIHeroData
 
 

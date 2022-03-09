@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils.AIHeroGlobals import SCALED_NOTES_RANGE, NOTES_IN_OCTAVE, TIME_DIVISION, SCALED_NOTES_NUMBER
+from src.utils.AIHeroGlobals import SCALED_NOTES_RANGE, NOTES_IN_OCTAVE, TIME_DIVISION, SCALED_NOTES_NUMBER
 
 
 class TimeChangeStrategy:  # change duration of a random note, between a stablished note size

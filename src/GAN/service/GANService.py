@@ -1,8 +1,8 @@
 import traceback
 
-from GAN.engine.AIHeroGAN import AIHeroGAN
-from GAN.exceptions.GANExceptions import GanTrainingException
-from utils.AIHeroEnums import MelodicPart
+from src.GAN.engine.AIHeroGAN import AIHeroGAN
+from src.GAN.exceptions.GANExceptions import GanTrainingException
+from src.utils.AIHeroEnums import MelodicPart
 
 
 class GANService:

@@ -15,10 +15,10 @@ from IPython import display
 from tensorflow.keras import layers
 from tensorflow.python.ops.numpy_ops import np_config
 
-from GAN.data.GANTrainingData import GANTrainingData
-from GAN.engine.quality.FIDQualityModel import FIDQualityModel
-from utils.AIHeroEnums import MelodicPart
-from utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
+from src.GAN.data.GANTrainingData import GANTrainingData
+from src.GAN.engine.quality.FIDQualityModel import FIDQualityModel
+from src.utils.AIHeroEnums import MelodicPart
+from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
 
 
 class AIHeroGAN:

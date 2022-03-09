@@ -1,9 +1,9 @@
 import time
 from glob import glob
 
-from GAN.engine.augmentation.AugmentationEngine import AugmentationEngine
-from data.AIHeroData import AIHeroData
-from utils.AIHeroEnums import MelodicPart
+from src.GAN.engine.augmentation.AugmentationEngine import AugmentationEngine
+from src.data.AIHeroData import AIHeroData
+from src.utils.AIHeroEnums import MelodicPart
 
 
 class GANTrainingData:
