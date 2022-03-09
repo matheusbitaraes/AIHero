@@ -1,0 +1,24 @@
+O que foi feito:
+ - Falha com o POP909 e decidi manter como estava
+    - pra isso precisei fazer muita reestruturação.
+ - mudança para harmonia funcional.
+    - conversei com um amigo que da aula de usica e mandei um e-mail para outro professor sobre isso também
+ - tentativa de uma só GAN - ainda não deu
+ - considerando usar LSTM agora na GAN (ou transformer)
+ - critério de parada utilizando FID.
+ - (augmentation de transposição de oitava estava deixando FID ruim)
+
+ - quase terminando a versão de agora
+ - pretendo começar mais seriamente a escrita do trabalho
+ - depoi tentar remodelar a GAN, fazendo o gerador ser uma LSTM ou uma arquitetura com Transformer
+ - arquitetura multistream/multiflow
+
+
+ - ver com o que que eu vou comparar
+ - pegar outros modelos
+ - FID no evolucionario
+ - pensar em perguntas:
+        - utilização da gan como população é melhor que não?
+        - o quão melhor/pior minha abordagem é
+
+ - copiar esse https://github.com/ryohey/signal pra dentro do meu site, pra ter o player midi integrado

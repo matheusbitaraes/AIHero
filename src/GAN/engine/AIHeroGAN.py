@@ -7,35 +7,38 @@ from datetime import date
 
 import imageio
 import matplotlib
+from keras import layers
+
+from src.GAN.exceptions.GANExceptions import GanTrainingException
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from IPython import display
-from tensorflow.keras import layers
 from tensorflow.python.ops.numpy_ops import np_config
 
-from GAN.data.GANTrainingData import GANTrainingData
-from GAN.engine.quality.FIDQualityModel import FIDQualityModel
-from utils.AIHeroEnums import MelodicPart
-from utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
+from src.GAN.data.GANTrainingData import GANTrainingData
+from src.GAN.engine.quality.FIDQualityModel import FIDQualityModel
+from src.utils.AIHeroHelper import HarmonicFunction
+from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
 
 
 class AIHeroGAN:
-    def __init__(self, config, part=MelodicPart.X):
-        # todo: fazer alguma verificação e validação para que o part seja sempre um valor do enum
-        self.part_type = part.value
+    def __init__(self, config, harmonic_function=HarmonicFunction.TONIC):
+        self.harmonic_function = harmonic_function
 
         # training
-        self.noise_dim = config["training"]["noise_dim"]  # todo: experiment other values
+        self.noise_dim = config["training"]["noise_dim"]
         self.num_examples_to_generate = config["training"][
             "num_examples_to_generate"]  # number of melodies to be generated
         self.BATCH_PERCENTAGE = config["training"]["batch_percentage_alt"]
-        self.BUFFER_PERCENTAGE = config["training"]["buffer_percentage"]
         self.BATCH_SIZE = config["training"]["max_batch_size"]
+        self.BUFFER_PERCENTAGE = config["training"]["buffer_percentage_alt"]
+        self.BUFFER_SIZE = config["training"]["max_buffer_size"]
         self.num_epochs = config["training"]["num_epochs"]
 
-        self.training_data = GANTrainingData(config, melodic_part=part)
+        self.training_data = GANTrainingData(config, harmonic_function=harmonic_function)
 
         # Private Variables
         self._trained = False
@@ -45,7 +48,7 @@ class AIHeroGAN:
         self._discriminator_losses = []
 
         self.gifs_evidence_dir = config["generated_evidences_dir"]
-        self.checkpoint_dir = f'{config["checkpoint"]["checkpoint_folder"]}/part_{self.part_type}'
+        self.checkpoint_dir = f'{config["checkpoint"]["checkpoint_folder"]}/{self.harmonic_function.name}'
         self.checkpoint_prefix = os.path.join(self.checkpoint_dir, "ckpt")
 
         # quality metric
@@ -53,15 +56,16 @@ class AIHeroGAN:
         self._quality_model = FIDQualityModel()
         self._epochs_for_quality_measure = config["training"]["epochs_for_quality_measure"]
         self._max_samples_for_quality_measure = config["training"]["max_samples_for_quality_measure"]
+        self._quality_target_value = config["training"]["quality_measure_target_value"]
         self._quality_measures = []
 
         self.generator_model = self.make_generator_model()
         self.discriminator_model = self.make_discriminator_model()
 
         # This method returns a helper function to compute cross entropy loss
-        self.cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+        self.cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
-        self.generator_optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.5)
+        self.generator_optimizer = tf.keras.optimizers.Adam(learning_rate=0.005, beta_1=0.5)
         self.discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=0.002, beta_1=0.5)
 
         self.checkpoint = tf.train.Checkpoint(generator_optimizer=self.generator_optimizer,
@@ -75,7 +79,7 @@ class AIHeroGAN:
 
     def load_from_checkpoint(self):
         if self.should_verbose():
-            print(f"loading checkpoint for gan of part {self.part_type}...")
+            print(f"loading checkpoint for gan of part {self.harmonic_function.name}...")
         load_status = self.checkpoint.restore(tf.train.latest_checkpoint(self.checkpoint_dir))
         try:
             load_status.assert_existing_objects_matched()
@@ -99,36 +103,75 @@ class AIHeroGAN:
         return self._trained
 
     def make_generator_model(self):
-        layer_1_finger = max(int(SCALED_NOTES_NUMBER / 2), 1)
-        layer_1_fuse = max(int(TIME_DIVISION / 2), 1)
-        layer_2_finger = max(int(SCALED_NOTES_NUMBER / 4), 1)
-        layer_2_fuse = max(int(TIME_DIVISION / 4), 1)
+        layer_1_x = max(int(SCALED_NOTES_NUMBER / 2), 1)
+        layer_1_y = max(int(TIME_DIVISION / 2), 1)
+        layer_2_x = max(int(SCALED_NOTES_NUMBER / 4), 1)
+        layer_2_y = max(int(TIME_DIVISION / 4), 1)
         model = tf.keras.Sequential()
 
         # https://analyticsindiamag.com/a-complete-understanding-of-dense-layers-in-neural-networks/#:~:text=In%20any%20neural%20network%2C%20a,in%20artificial%20neural%20network%20networks.
         # Dense layer: Neurons of the layer that is deeply connected with its preceding layer which means the neurons
         # of the layer are connected to every neuron of its preceding layer.
-        model.add(layers.Dense(layer_2_finger * layer_2_fuse * 256, use_bias=False, input_shape=(self.noise_dim,)))
-
-        ## Normalization layer
+        model.add(layers.Dense(layer_2_x * layer_2_y * 256, use_bias=False, input_shape=(self.noise_dim,)))
         model.add(layers.BatchNormalization())
 
         # Leaky Rectified Linear Unit (ReLU) layer: A leaky ReLU layer performs a threshold operation, where any
         # input value less than zero is multiplied by a fixed scalar.
         model.add(layers.LeakyReLU())
 
-        model.add(layers.Reshape((layer_2_finger, layer_2_fuse, 256)))
-        assert model.output_shape == (None, layer_2_finger, layer_2_fuse, 256)  # Note: None is the batch size
+        model.add(layers.Reshape((layer_2_x, layer_2_y, 256)))
+        assert model.output_shape == (None, layer_2_x, layer_2_y, 256)  # Note: None is the batch size
 
         model.add(layers.Conv2DTranspose(128, (5, 5), strides=(1, 1), padding='same', use_bias=False))
-        assert model.output_shape == (None, layer_2_finger, layer_2_fuse, 128)
+        assert model.output_shape == (None, layer_2_x, layer_2_y, 128)
         model.add(layers.BatchNormalization())
         model.add(layers.LeakyReLU())
 
         model.add(layers.Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, layer_1_finger, layer_1_fuse, 64)
+        assert model.output_shape == (None, layer_1_x, layer_1_y, 64)
 
         # model.add(layers.Dense(64))
+        model.add(layers.LeakyReLU())
+        model.add(layers.BatchNormalization())
+
+        model.add(layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
+        assert model.output_shape == (None, SCALED_NOTES_NUMBER, TIME_DIVISION, 1)
+
+        if self.should_verbose():
+            model.summary()
+
+        return model
+
+    def make_bigger_generator_model(self):
+        layer_0_x = max(int(SCALED_NOTES_NUMBER / 2), 1)
+        layer_0_y = max(int(TIME_DIVISION / 2), 1)
+        layer_1_x = max(int(SCALED_NOTES_NUMBER / 4), 1)
+        layer_1_y = max(int(TIME_DIVISION / 4), 1)
+        layer_2_x = max(int(SCALED_NOTES_NUMBER / 8), 1)
+        layer_2_y = max(int(TIME_DIVISION / 8), 1)
+        model = tf.keras.Sequential()
+
+        model.add(layers.Dense(layer_2_x * layer_2_y * 512, use_bias=False, input_shape=(self.noise_dim,)))
+        model.add(layers.BatchNormalization())
+
+        # Leaky Rectified Linear Unit (ReLU) layer: A leaky ReLU layer performs a threshold operation, where any
+        # input value less than zero is multiplied by a fixed scalar.
+        model.add(layers.LeakyReLU())
+
+        model.add(layers.Reshape((layer_2_x, layer_2_y, 512)))
+        assert model.output_shape == (None, layer_2_x, layer_2_y, 512)  # Note: None is the batch size
+
+        model.add(layers.Conv2DTranspose(256, (5, 5), strides=(1, 1), padding='same', use_bias=False))
+        assert model.output_shape == (None, layer_2_x, layer_2_y, 256)
+        model.add(layers.BatchNormalization())
+        model.add(layers.LeakyReLU())
+
+        model.add(layers.Conv2DTranspose(128, (5, 5), strides=(2, 2), padding='same', use_bias=False))
+        assert model.output_shape == (None, layer_1_x, layer_1_y, 128)
+
+        model.add(layers.Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
+        assert model.output_shape == (None, layer_0_x, layer_0_y, 64)
+
         model.add(layers.LeakyReLU())
         model.add(layers.BatchNormalization())
 
@@ -172,6 +215,7 @@ class AIHeroGAN:
 
     def generator_loss(self, fake_output):
         # computes cross entropy between fake output and best output (which is everything = 1)
+        #
         return self.cross_entropy(tf.ones_like(fake_output), fake_output)
 
     # Notice the use of `tf.function`
@@ -206,23 +250,19 @@ class AIHeroGAN:
         try:
             dataset = self.training_data.get_as_matrix()
 
-            BUFFER_SIZE = np.int(dataset.shape[0] * self.BUFFER_PERCENTAGE)
+            self.BUFFER_SIZE = min(self.BUFFER_SIZE, np.int(np.int(np.ceil(dataset.shape[0] * self.BUFFER_PERCENTAGE))))
+            self.BATCH_SIZE = min(self.BATCH_SIZE, np.int(np.int(np.ceil(dataset.shape[0] * self.BATCH_PERCENTAGE))))
 
-            # O IDEAL É O ABAIXO - APAGANDO TEMPORARIAMENTE PARA TESTE
-            # self.BATCH_SIZE = min(self.BATCH_SIZE, np.int(np.int(np.ceil(dataset.shape[0] * self.BATCH_PERCENTAGE))))
-
-            train_dataset = tf.data.Dataset.from_tensor_slices(dataset).shuffle(BUFFER_SIZE).batch(self.BATCH_SIZE)
+            train_dataset = tf.data.Dataset.from_tensor_slices(dataset).shuffle(self.BUFFER_SIZE).batch(self.BATCH_SIZE)
 
             current_time_min = 0
             total_epochs = num_epochs if num_epochs is not None else self.num_epochs
-            for epoch in range(total_epochs):
+            epoch = 0
+            while epoch < total_epochs:
                 start = time.time()
                 results = None
                 for melody_batch in train_dataset:
                     results = self.train_step(melody_batch)  # [ BATCH_SIZE, NUM_FINGERS, TIME_DIVISION, 1]
-                    if self.should_verbose():
-                        print(f'Loss G: {results["generator_loss"]},'
-                              f' Loss D: {results["discriminator_loss"]}', end='\r')
                 if self.should_verbose():
                     print(f'Loss G: {results["generator_loss"]},'
                           f' Loss D: {results["discriminator_loss"]}')
@@ -232,7 +272,7 @@ class AIHeroGAN:
                     self.checkpoint.save(file_prefix=self.checkpoint_prefix)
 
                 # measure GAN quality: DISABLE THIS FOR BETTER PERFORMANCE
-                if (epoch + 1) % self._epochs_for_quality_measure == 0:
+                if self._live_quality_polling_enabled and (epoch + 1) % self._epochs_for_quality_measure == 0:
                     self._quality_measures.append(self.calculate_quality_measure())
 
                 self._generator_losses.append(float(results["generator_loss"]))
@@ -246,13 +286,20 @@ class AIHeroGAN:
                 if self.should_verbose():
                     print(f'Time for epoch {epoch + 1} is {time.time() - start:.2f} sec')
 
+                if self.stop_criterion_achieved():
+                    print(f'Stop Criterion Achieved in epoch {epoch + 1}!!')
+                    break
+
+                epoch += 1
+
             # get last quality measure
-            self._quality_measures.append(self.calculate_quality_measure())
+            if self._live_quality_polling_enabled:
+                self._quality_measures.append(self.calculate_quality_measure())
 
             # Generate after the final epoch
             if should_generate_gif:
                 display.clear_output(wait=True)
-                self.generate_and_save_images(self.num_epochs, current_time_min)
+                self.generate_and_save_images(epoch, current_time_min)
                 self.generate_gif(filename_prefix=prefix)
 
                 # erase temporary images
@@ -260,10 +307,11 @@ class AIHeroGAN:
                     os.remove(f)
 
         except Exception as e:
-            print(f"Failed training gan of type {self.part_type}: {e}")
+            print(f"Failed training gan of type {self.harmonic_function.name}: {e}")
             print(traceback.format_exc())
+            raise GanTrainingException()
 
-    def generate_and_save_images(self, epoch, current_time_min, new_seed=False):
+    def generate_and_save_images(self, epoch, current_time_min, new_seed=False, harmonic_function=0):
         predictions = self.generate_prediction(new_seed)
         num_bars = predictions.shape[0]
         concat_data = np.ndarray((SCALED_NOTES_NUMBER, TIME_DIVISION * num_bars))
@@ -278,7 +326,7 @@ class AIHeroGAN:
             fig, axs = plt.subplots(3)
         else:
             fig, axs = plt.subplots(2)
-        fig.suptitle(f'Training progress for epoch {epoch} ({round(current_time_min, 2)} min)')
+        fig.suptitle(f'Training progress for epoch {epoch} hm({harmonic_function}) ({round(current_time_min, 2)} min)')
 
         # midi plot
         axs[0].imshow(concat_data, cmap='Blues')
@@ -305,12 +353,13 @@ class AIHeroGAN:
                 axs[2].legend(["FID indicator: {:03f}".format(self._quality_measures[-1])])
             axs[2].set(xlabel='Epochs', ylabel='FID')
 
-        plt.savefig('.temp/image_at_epoch_{:04d}.png'.format(epoch))
+        plt.savefig('.temp/image_at_epoch_{:01f}_{:04d}.png'.format(harmonic_function, epoch))
         plt.close()
 
     def generate_gif(self, filename_prefix=""):
         today = date.today()
-        anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}{self.part_type}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
+        anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}{self.harmonic_function.name}_' \
+                    f'{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
 
         with imageio.get_writer(anim_file, mode='I') as writer:
             filenames = glob.glob('.temp/image*.png')
@@ -321,13 +370,13 @@ class AIHeroGAN:
             image = imageio.imread(filename)
             writer.append_data(image)
 
-    def generate_melody_matrix(self, num_melodies=1, new_seed=False):
+    def generate_melody_matrix(self, num_melodies=1, new_seed=False, harmonic_function=None):
         predictions = self.generate_prediction(new_seed, size=num_melodies)
         np_config.enable_numpy_behavior()
         melody = tf.Variable(predictions)
         for i in range(melody.shape[0]):
-            melody[i, :, :, 0].assign(round(melody[i, :, :, 0]))
-        return normalize_melody(melody.numpy())
+            melody[i, :, :, 0].assign(np.where(melody[i, :, :, 0] > 0.9, 1, -1))
+        return melody.numpy()
 
     def generate_prediction(self, new_seed=False, size=1):
         # Notice `training` is set to False.
@@ -366,7 +415,33 @@ class AIHeroGAN:
     def quality_measures(self):
         return self._quality_measures
 
+    def harmonic_function_to_binary(self, hm=None):
+        table = {
+            0: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            1: [-1, -1, -1, -1, -1, 1, 1, 1, 1, 1],
+            2: [1, 1, 1, 1, 1, -1, -1, -1, -1, -1],
+            3: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        }
+        return table[hm]
 
-def normalize_melody(melody):
-    melody[melody != 1] = -1
-    return melody
+    def build_seed(self):
+        noise = np.random.normal(size=(self.num_examples_to_generate, self.noise_dim))
+        for i in range(self.num_examples_to_generate):
+            if 0 < i < 4:
+                hm = i
+            else:
+                hm = 1
+            hm_bin = self.harmonic_function_to_binary(hm)
+            noise[i, 0:len(hm_bin)] = hm_bin
+        noise = tf.Variable(noise)
+        self.seed = noise
+
+    def stop_criterion_achieved(self):
+        last_scores = self._quality_measures[-5:]
+        if len(last_scores) < 5:
+            return False
+
+        for score in last_scores:
+            if score > self._quality_target_value:
+                return False
+        return True
