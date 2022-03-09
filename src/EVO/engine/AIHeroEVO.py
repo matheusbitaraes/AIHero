@@ -8,12 +8,12 @@ import imageio
 import matplotlib
 import numpy as np
 from EVO.engine.Fitness import Fitness
-from GAN.service.GANService import GANService
+from src.GAN.service.GANService import GANService
 from IPython import display
 
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
-from utils.AIHeroGlobals import SCALED_NOTES_RANGE, TIME_DIVISION, SCALED_NOTES_NUMBER
+from src.utils.AIHeroGlobals import SCALED_NOTES_RANGE, TIME_DIVISION, SCALED_NOTES_NUMBER
 
 
 class AIHeroEVO:

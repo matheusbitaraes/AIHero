@@ -2,9 +2,9 @@ import queue
 import threading
 import uuid
 
-from service.AIHeroService import AIHeroService
+from src.service.AIHeroService import AIHeroService
 
-from model.ApiModels import MelodyRequest
+from src.model.ApiModels import MelodyRequest
 
 
 class QueueConsumer:

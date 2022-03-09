@@ -1,9 +1,9 @@
 import concurrent.futures
 import traceback
 
-from EVO.service.EVOService import EVOService
+from src.EVO.service.EVOService import EVOService
 from src.GAN.service.GANService import GANService
-from data.AIHeroData import AIHeroData
+from src.data.AIHeroData import AIHeroData
 
 
 class AIHeroService:
@@ -66,7 +66,7 @@ class AIHeroService:
         melody_tuples = []
         try:
             for melody_specs in melody_specs_list:
-                raw_melody = self.gan_service.get_random_train_data(specs=melody_specs, melody_id=melody_id)
+                raw_melody = self.gan_service.get_random_train_data(specs=melody_specs)
                 melody_tuples.append((raw_melody, melody_specs.chord))
             ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
             if harmony_file is not None:

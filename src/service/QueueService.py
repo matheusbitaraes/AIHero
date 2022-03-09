@@ -1,6 +1,6 @@
 import os
 
-from worker.QueueConsumer import QueueConsumer
+from src.worker.QueueConsumer import QueueConsumer
 
 
 class QueueService:

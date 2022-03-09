@@ -44,7 +44,7 @@ class GANService:
         return gan_map
 
     def get_random_train_data(self, specs=None):
-        melodic_part = MelodicPart(specs["melodic_part"])
+        melodic_part = MelodicPart(specs.melodic_part)
         try:
             gan = self.gans[melodic_part.value]
             return gan.get_random_train_data()
