@@ -135,6 +135,8 @@ class AIHeroGAN:
         model.add(layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
         assert model.output_shape == (None, SCALED_NOTES_NUMBER, TIME_DIVISION, 1)
 
+
+
         if self.should_verbose():
             model.summary()
 

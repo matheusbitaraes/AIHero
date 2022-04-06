@@ -1,108 +1,122 @@
-from glob import glob
+from json import load
 from unittest import TestCase
 
-from data.AIHeroData import AIHeroData
+from src.data.AIHeroData import AIHeroData
+from src.model.ApiModels import MelodyRequestInput, MelodySpecs, HarmonySpecs, FitnessFunction
+from src.service.AIHeroService import AIHeroService
+from src.utils.AIHeroGlobals import TIME_DIVISION
 
-TRAIN_FILES_DIRECTORY = "resources/part_X_manual_3_C_*"
+
+def get_harmony_specs():
+    return [HarmonySpecs(melodic_part="RELAXATION", chord=0, key="C", tempo=80),
+            HarmonySpecs(melodic_part="TENSION", chord=-5, key="C", tempo=80),
+            HarmonySpecs(melodic_part="RELAXATION", chord=0, key="C", tempo=80),
+            HarmonySpecs(melodic_part="RELAXATION", chord=0, key="C", tempo=80),
+            HarmonySpecs(melodic_part="RELAXATION", chord=-5, key="C", tempo=80),
+            HarmonySpecs(melodic_part="TENSION", chord=-5, key="C", tempo=80),
+            HarmonySpecs(melodic_part="RELAXATION", chord=0, key="C", tempo=80),
+            HarmonySpecs(melodic_part="RELAXATION", chord=0, key="C", tempo=80),
+            HarmonySpecs(melodic_part="TENSION", chord=-7, key="C", tempo=80),
+            HarmonySpecs(melodic_part="TENSION", chord=-5, key="C", tempo=80),
+            HarmonySpecs(melodic_part="RELAXATION", chord=0, key="C", tempo=80),
+            HarmonySpecs(melodic_part="RETAKE", chord=-7, key="C", tempo=80)]
+
+
+def get_evo_specs():
+    return [FitnessFunction(key="notes_on_same_chord_key", name="", description="", value=1),
+            FitnessFunction(key="notes_on_beat_rate", name="", description="", value=0),
+            FitnessFunction(key="note_on_density", name="", description="", value=0.5),
+            FitnessFunction(key="note_variety_rate", name="", description="", value=0.7),
+            FitnessFunction(key="single_notes_rate", name="", description="", value=0),
+            FitnessFunction(key="notes_out_of_scale_rate", name="", description="", value=0)]
+
+
+def build_request_body(source):
+    harmony_specs = get_harmony_specs()
+    evolutionary_specs = get_evo_specs()
+    melody_specs = MelodySpecs(harmony_specs=harmony_specs, evolutionary_specs=evolutionary_specs)
+    request_input = MelodyRequestInput(source=source, melody_specs=melody_specs)
+    return request_input
+
+
+def build_big_request_body(source):
+    harmony_specs = get_harmony_specs()
+    big_harmony_specs = []
+    for i in range(5):
+        big_harmony_specs.extend(harmony_specs)
+    evolutionary_specs = get_evo_specs()
+    melody_specs = MelodySpecs(harmony_specs=big_harmony_specs, evolutionary_specs=evolutionary_specs)
+    request_input = MelodyRequestInput(source=source, melody_specs=melody_specs)
+    return request_input
+
+
+def get_config():
+    with open("src/test/test_config.json") as config_file:
+        return load(config_file)
 
 
 class TestAIHeroData(TestCase):
-    def setUp(self):
-        self.ai_hero_data = AIHeroData()
-        self.ai_hero_data.load_from_midi_files(glob(TRAIN_FILES_DIRECTORY))
 
-    def test_image_plot(self):
-        self.ai_hero_data.export_spr_as_image(file_name="image_export_test")
+    def test_load_pop909_spr_and_with_chord_on_different_keys(self):
+        # load a file
+        data = AIHeroData()
+        data.load_from_pop909_dataset(dataset_path="src/test/resources/pop909-subsample/")
 
-    def test_midi_export(self):
-        self.ai_hero_data.export_as_midi(file_name="loaded_mingus_test")
+        # add a chord being played on every SPR
+        data.execute_function_on_data(add_one_note)
 
-    def test_composition_to_data_conversion(self):  # todo: create "expected" value
-        previous, converted = test_conversion(self.ai_hero_data, "mingus_composition", "data")
-        self.assertEqual(str(previous), str(converted))
+        # export file
+        data.export_as_midi("testeeeee")
+        assert 1 == 1
 
-    def test_composition_to_pr_conversion(self):  # todo: create "expected" value
-        previous, converted = test_conversion(self.ai_hero_data, "mingus_composition", "pr")
-        self.assertEqual(str(previous), str(converted))
+    def test_load_manual_spr_and_with_chord_on_different_keys(self):
+        # load a file
+        data = AIHeroData()
+        data.load_spr_from_checkpoint("src/GAN/data/train/manual")
 
-    def test_composition_to_spr_conversion(self):  # todo: create "expected" value
-        previous, converted = test_conversion(self.ai_hero_data, "mingus_composition", "spr")
-        self.assertEqual(str(previous), str(converted))
+        # add a chord being played on every SPR
+        data.execute_function_on_data(add_one_note)
 
-    def test_pr_to_composition_conversion(self):
-        previous, converted = test_conversion(self.ai_hero_data, "pr", "mingus_composition")
-        self.assert_compositions(previous, converted)
+        # export file
+        data.export_as_midi("src/test/test_load_manual_spr_and_with_chord_on_different_keys")
+        assert 1 == 1
 
-    def test_spr_to_composition_conversion(self):
-        previous, converted = test_conversion(self.ai_hero_data, "spr", "mingus_composition")
-        self.assert_compositions(previous, converted)
+    def test_make_a_blues_sequence_from_train_data(self):
+        input = build_big_request_body("train")
+        harmony_specs = input.melody_specs.harmony_specs
+        ai_hero_service = AIHeroService(get_config())
+        data = ai_hero_service.generate_compositions_with_train_data(harmony_specs)
 
-    def test_data_to_composition_conversion(self):
-        previous, converted = test_conversion(self.ai_hero_data, "data", "mingus_composition")
-        self.assert_compositions(previous, converted)
+        # add a chord being played on every SPR
+        data.execute_function_on_data(add_one_note)
 
-    def test_pr_to_spr_conversion(self):
-        previous, converted = test_conversion(self.ai_hero_data, "pr", "spr")
-        self.assertEqual(str(previous), str(converted))
+        data.export_as_midi("src/test/test_make_a_blues_sequence_from_train_data")
 
-    def test_spr_to_pr_conversion(self):
-        previous, converted = test_conversion(self.ai_hero_data, "spr", "pr")
-        self.assertEqual(str(previous), str(converted))
+    def test_make_a_blues_sequence_from_gan_data(self):
+        input = build_big_request_body("gan")
+        harmony_specs = input.melody_specs.harmony_specs
+        ai_hero_service = AIHeroService(get_config())
+        data = ai_hero_service.generate_GAN_compositions(harmony_specs, melody_id="id")
 
-    def test_load_from_GAN(self):
-        pass
+        # add a chord being played on every SPR
+        data.execute_function_on_data(add_one_note)
 
-    def assert_compositions(self, previous_composition, converted_composition):
-        for i in range(len(previous_composition)):
-            pc = previous_composition[i]
-            cc = converted_composition[i]
-            for j in range(len(pc)):
-                pt = pc[j]
-                ct = cc[j]
-                for k in range(len(pt)):
-                    pbs = pt[k].bars
-                    cbs = ct[k].bars
-                    if bars_with_note(pbs) and bars_with_note(cbs):
-                        for l in range(len(pbs)):
-                            self.assertEqual(str(pbs[l]), str(cbs[l]))
+        data.export_as_midi("src/test/test_make_a_blues_sequence_from_train_data")
 
+    def test_make_a_blues_sequence_from_evo_data(self):
+        input = build_request_body("evo")
+        ai_hero_service = AIHeroService(get_config())
+        data = ai_hero_service.generate_compositions(input.melody_specs.harmony_specs,
+                                                     input.melody_specs.evolutionary_specs)
 
-def test_conversion(ai_hero_data, from_type="mingus_composition", to_type="pr"):
-    previous_value = None
-    converted_value = None
+        # add a chord being played on every SPR
+        data.execute_function_on_data(add_one_note)
 
-    if to_type == "data":
-        previous_value = ai_hero_data.get_data()
-    if to_type == "mingus_composition":
-        previous_value = ai_hero_data.get_mingus_compositions()
-    if to_type == "pr":
-        previous_value = ai_hero_data.get_pr()
-    if to_type == "spr":
-        previous_value = ai_hero_data.get_spr()
-
-    if from_type == "data":
-        ai_hero_data.set_data(ai_hero_data.get_data())
-    if from_type == "mingus_composition":
-        ai_hero_data.set_mingus_compositions(ai_hero_data.get_mingus_compositions())
-    if from_type == "pr":
-        ai_hero_data.set_pr(ai_hero_data.get_pr())
-    if from_type == "spr":
-        ai_hero_data.set_spr(ai_hero_data.get_spr())
-
-    if to_type == "data":
-        converted_value = ai_hero_data.get_data()
-    if to_type == "mingus_composition":
-        converted_value = ai_hero_data.get_mingus_compositions()
-    if to_type == "pr":
-        converted_value = ai_hero_data.get_pr()
-    if to_type == "spr":
-        converted_value = ai_hero_data.get_spr()
-    return previous_value, converted_value
+        data.export_as_midi("src/test/test_make_a_blues_sequence_from_evo_data")
 
 
-def bars_with_note(bars):
-    if len(bars) == 0:
-        return False
-    for bar in bars:
-        if len(bar) > 0:
-            return True
+def add_one_note(data, chords):
+    data[:, 12, 0:TIME_DIVISION:int(TIME_DIVISION / 4), :] = 1
+    data[:, 16, 0:TIME_DIVISION:int(TIME_DIVISION / 4), :] = 1
+    data[:, 19, 0:TIME_DIVISION:int(TIME_DIVISION / 4), :] = 1
+    return data, chords

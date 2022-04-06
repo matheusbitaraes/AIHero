@@ -1,0 +1,30 @@
+{
+  "generated_evidences_dir": "src/GAN/data/evidences/gifs",
+  "verbose": true,
+  "checkpoint": {
+    "use_checkpoint": true,
+    "checkpoint_folder": "src/GAN/data/training_checkpoints"
+  },
+  "training": {
+    "num_examples_to_generate": 4,
+    "num_epochs": 30,
+    "train_data_folder": "src/GAN/data/train/manual",
+    "noise_dim": 100,
+    "max_batch_size": 100,
+    "batch_percentage_alt": 0.1,
+    "buffer_percentage_alt": 1,
+    "max_buffer_size": 2000,
+    "enable_live_quality_measures": true,
+    "epochs_for_quality_measure": 10,
+    "max_samples_for_quality_measure": 100
+  },
+  "data_augmentation": {
+    "enabled": true,
+    "replication_factor": 15,
+    "data_augmentation_strategy_pipeline": [
+      {"method":"TimeChangeStrategy", "factor": 6},
+      {"method":"FifthNoteAddStrategy", "factor": 1},
+      {"method":"OctaveChangeStrategy", "factor": 1}
+    ]
+  }
+}
