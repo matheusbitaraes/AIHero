@@ -180,7 +180,7 @@ class AIHeroGAN:
     # This annotation causes the function to be "compiled".
     @tf.function
     def train_step(self, images):
-        noise = tf.random.normal([self.BATCH_SIZE, self.noise_dim])
+        noise = tf.random.normal(size=(self.BATCH_SIZE, self.noise_dim))
 
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
             generated_images = self.generator_model(noise, training=True)
