@@ -2,9 +2,8 @@ import queue
 import threading
 import uuid
 
-from src.service.AIHeroService import AIHeroService
-
 from src.model.ApiModels import MelodyRequest
+from src.service.AIHeroService import AIHeroService
 
 
 class QueueConsumer:
@@ -38,18 +37,18 @@ class QueueConsumer:
             if source == "evo":
                 result = self.ai_hero_service.generate_compositions(harmony_specs,
                                                                     evolutionary_specs=evolutionary_specs,
-                                                                    melody_id=melody_id,
-                                                                    harmony_file=harmony_file)
-                result.export_as_midi(file_name=f"{self.melody_path}/{melody_id}")
+                                                                    melody_id=melody_id)
+                result.append_track_and_export_as_midi(file_name=f"{self.melody_path}/{melody_id}",
+                                                       midi_file=harmony_file)
             if source == "gan":
                 result = self.ai_hero_service.generate_GAN_compositions(harmony_specs,
-                                                                        melody_id=melody_id,
-                                                                        harmony_file=harmony_file)
-                result.export_as_midi(file_name=f"{self.melody_path}/{melody_id}")
+                                                                        melody_id=melody_id)
+                result.append_track_and_export_as_midi(file_name=f"{self.melody_path}/{melody_id}",
+                                                       midi_file=harmony_file)
             if source == "train":
                 result = self.ai_hero_service.generate_compositions_with_train_data(harmony_specs,
-                                                                                    melody_id=melody_id,
-                                                                                    harmony_file=harmony_file)
-                result.export_as_midi(file_name=f"{self.melody_path}/{melody_id}")
+                                                                                    melody_id=melody_id)
+                result.append_track_and_export_as_midi(file_name=f"{self.melody_path}/{melody_id}",
+                                                       midi_file=harmony_file)
             print(f'Finished {melody_id}')
             self.q.task_done()

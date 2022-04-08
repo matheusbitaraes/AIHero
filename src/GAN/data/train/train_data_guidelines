@@ -1,4 +1,5 @@
 The training data must be in the following format:
-    - part_{part_type}_{name}_{chord}.mid
+    - part_{part_type}_{name}_{chord_number}.mid
 
 every training file is a composition and every bar will be intented to have same chord
+the chord_number value is the value of the chord in relation with the key. Example

@@ -1,8 +1,9 @@
+import mingus.core.chords as chords
 import numpy as np
 from mingus.core import notes
 
-from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER
-import mingus.core.chords as chords
+from src.EVO.resources.resources import note_reference
+from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, CENTRAL_NOTE_NUMBER
 
 
 class FitnessFunctionMap:
@@ -128,6 +129,23 @@ def single_notes_rate(input_values):
     return 0
 
 
+def pitch_proximity_rate(input_values):
+    note_center = input_values["value"] - CENTRAL_NOTE_NUMBER + SCALED_NOTES_NUMBER/2
+    weight = input_values["weight"]
+    note_sequence = input_values["note_sequence"]
+    note_range = 10
+    note_sums = np.sum(note_sequence, 1)  # sum over x axis
+    total_rows_with_notes = len(note_sums[note_sums != -1 * TIME_DIVISION])
+    a = max(0, int(note_center-note_range))
+    b = min(SCALED_NOTES_NUMBER, int(note_center+note_range))
+    range_filtered = note_sums[a:b]
+    notes_inside_range = len(range_filtered[range_filtered != -1 * TIME_DIVISION])
+
+    if total_rows_with_notes == 0:
+        return 0
+    return weight * notes_inside_range/total_rows_with_notes
+
+
 def notes_out_of_scale_rate(input_values):
     # input values
     weight = input_values["weight"]
@@ -140,16 +158,16 @@ def note_repetitions_rate(input_values):
     return 0
 
 
-def pitch_proximity_rate(input_values):
-    return 0
-
-
 def note_sequence_rate(input_values):
     return 0
 
 
 def get_chord_notes(melody_specs):
-    chord = melody_specs["chord"]
+    chord_number = melody_specs["chord"]
+    chord = 'C'
+    for note in note_reference.keys():
+        if note_reference[note] == abs(int(chord_number)):
+            chord = note
     key = melody_specs["key"]
     note_list = chords.triad(chord, key)
     note_numbers = []

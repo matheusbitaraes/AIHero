@@ -7,9 +7,10 @@ from random import random, randrange
 import imageio
 import matplotlib
 import numpy as np
-from EVO.engine.Fitness import Fitness
-from src.GAN.service.GANService import GANService
 from IPython import display
+
+from src.EVO.engine.Fitness import Fitness
+from src.GAN.service.GANService import GANService
 
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
@@ -32,6 +33,7 @@ class AIHeroEVO:
         self._pnm = config["evolutionary_algorithm_configs"][
             "note_change_probability"]  # probability of changing a note when a child is going on mutation
         self.should_generate_gif = self._verbose and not config["enable_parallelization"]
+        self._max_fitness_value = None
 
     def generate_melody(self, melody_specs, melody_id=""):
         if self._verbose:
@@ -45,6 +47,7 @@ class AIHeroEVO:
 
     def genetic_algorithm(self, melody_specs, melody_id=""):
         fitness = np.zeros(self._pop_size)
+        self._max_fitness_value = self.fitness_function.get_maximum_possible_value()
         best_individual = None
         best_fitness = []
         best_fitness_per_function = []
@@ -53,6 +56,7 @@ class AIHeroEVO:
 
         # initiate population
         pop = self.generate_population_with_gan(melody_specs)
+        pop = apply_filters(pop)
 
         # generation loop
         current_time_min = 0
@@ -77,6 +81,10 @@ class AIHeroEVO:
                                               current_time_min=current_time_min,
                                               filename_prefix=filename_prefix)
 
+            # criterio de parada: fitness é 95% do valor máximo
+            if self.is_best_fitness_closest_to_max(best_fitness[-1], 0.95):
+                break
+
             idx = 0
             new_pop = pop * 0
             while idx < self._pop_size:
@@ -84,13 +92,14 @@ class AIHeroEVO:
                 parents = self.tournament(pop, fitness, 2)
 
                 # crossover: one point
-                children = self.crossover(parents, TIME_DIVISION)
+                children = self.crossover(parents)
 
                 # mutation: note flip
                 for idm in range(children.shape[0]):
                     if random() <= self._pm:
                         melody = self.gan_service.generate_melody(specs=melody_specs, num_melodies=1)
-                        children[idm, :, :] = melody[0, :, :, 0]
+                        raw_children = melody[:, :, :, 0]
+                        children[idm, :, :] = apply_filters(raw_children)
 
                 new_pop[idx:idx + 2] = children
 
@@ -127,7 +136,7 @@ class AIHeroEVO:
 
         return parents
 
-    def crossover(self, parents, total_notes):
+    def crossover(self, parents):
         if random() <= self._pc:
             on_beat_cut_point = randrange(int(TIME_DIVISION / 4), TIME_DIVISION,
                                           int(TIME_DIVISION / 4))  # the cutting point happens on a beat
@@ -148,7 +157,8 @@ class AIHeroEVO:
                 child[i] = child[i] - randrange(8) + 4
         return child
 
-    def generate_and_save_images(self, epoch, melody, fitness, fitness_per_function, fitness_function_names, current_time_min, filename_prefix):
+    def generate_and_save_images(self, epoch, melody, fitness, fitness_per_function, fitness_function_names,
+                                 current_time_min, filename_prefix):
 
         # fig, axs = plt.subplots(3)
         fig, axs = plt.subplots(2)
@@ -166,7 +176,7 @@ class AIHeroEVO:
         # fitness plot
         num_measures = len(fitness)
         axs[1].plot(range(num_measures), fitness)
-        axs[1].legend(["Fitness: {:03f}".format(fitness[-1])])
+        axs[1].legend(["Fitness: {:03f} (max is {:3f})".format(fitness[-1], self._max_fitness_value)])
         axs[1].set(xlabel='Epochs', ylabel='Fitness')
 
         # # fitness per function plot
@@ -180,8 +190,8 @@ class AIHeroEVO:
 
     def generate_gif(self, filename_prefix=""):
         today = date.today()
-        # anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}_{today.strftime("%Y%m%d")}_{time.time_ns()}.mp4'
-        anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
+        anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}_{today.strftime("%Y%m%d")}_{time.time_ns()}.mp4'
+        # anim_file = f'{self.gifs_evidence_dir}/{filename_prefix}_{today.strftime("%Y%m%d")}_{time.time_ns()}.gif'
 
         with imageio.get_writer(anim_file, mode='I') as writer:
             filenames = glob.glob(f'.temp/{filename_prefix}*.png')
@@ -191,3 +201,31 @@ class AIHeroEVO:
                 writer.append_data(image)
             image = imageio.imread(filename)
             writer.append_data(image)
+
+    def is_best_fitness_closest_to_max(self, value, tol_perc):
+        return value / self._max_fitness_value > tol_perc
+
+
+# todo: criar uma classe pra isso?
+def erode(individual, threshold_length):
+    erosion_level = threshold_length + 2
+
+    orig_shape = individual.shape
+
+    # sub matrices of kernel size
+    flat_submatrices = np.array([
+        individual[i, j:(j + erosion_level)]
+        for i in range(orig_shape[0]) for j in range(orig_shape[1])
+    ], dtype=object)
+
+    # condition to replace the values - if the kernel equal to submatrix then 255 else 0
+    image_erode = np.array([1 if sum(i) > threshold_length - 2 else -1 for i in flat_submatrices])
+    image_erode = image_erode.reshape(orig_shape)
+    return image_erode
+
+
+def apply_filters(pop):
+    # filter little notes -> make an erosion on x axis
+    for i in range(pop.shape[0]):
+        pop[i, :, :] = erode(pop[i, :, :], int(TIME_DIVISION / 32))
+    return pop

@@ -13,4 +13,10 @@ TODO: insert image of the flow here
 ## Next steps:
 
 
+To run automated tests and generate evidences run:
+
+```commandline
+python -m unittest discover src/test
+```
+
 

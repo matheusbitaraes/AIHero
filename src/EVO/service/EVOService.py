@@ -1,4 +1,4 @@
-from EVO.engine.AIHeroEVO import AIHeroEVO
+from src.EVO.engine.AIHeroEVO import AIHeroEVO
 
 
 class EVOService:

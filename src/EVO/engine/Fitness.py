@@ -1,5 +1,5 @@
 import numpy as np
-from EVO.engine.FitnessFunctionMap import FitnessFunctionMap
+from src.EVO.engine.FitnessFunctionMap import FitnessFunctionMap
 
 
 class Fitness:
@@ -17,6 +17,7 @@ class Fitness:
                 input_vars = {
                     "name":  function_set["name"],
                     "weight": function_set["weight"],
+                    "value": function_set["value"],
                     "chord": melody_specs.chord,
                     "key": melody_specs.key,
                     "note_sequence": note_sequence,
@@ -34,5 +35,12 @@ class Fitness:
     def update_configs(self, evo_specs):
         new_set = []
         for spec in evo_specs:
-            new_set.append({"name": spec.key, "weight": spec.value})
+            new_set.append({"name": spec.key, "weight": spec.weight, "value": spec.value})
         self.function_sets = new_set
+
+    def get_maximum_possible_value(self):
+        fitness = 0
+        for function_set in self.function_sets:
+            if function_set["weight"] > 0:
+                fitness += function_set["weight"]
+        return fitness

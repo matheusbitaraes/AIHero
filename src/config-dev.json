@@ -16,11 +16,12 @@
   "training": {
     "num_examples_to_generate": 4,
     "num_epochs": 60,
-    "train_data_folder": "src/GAN/data/train",
+    "train_data_folder": "src/GAN/data/train/manual",
     "noise_dim": 100,
     "max_batch_size": 50,
     "batch_percentage_alt": 0.1,
-    "buffer_percentage": 1,
+    "buffer_percentage_alt": 1,
+    "max_buffer_size": 1000,
     "enable_live_quality_measures": false,
     "epochs_for_quality_measure": 10,
     "max_samples_for_quality_measure": 100
@@ -74,7 +75,7 @@
         },
         {
         "name": "pitch_proximity",
-        "weight": 0
+        "weight": 60
         },
         {
         "name": "note_sequence_rate",

@@ -22,7 +22,7 @@ class MelodyRequestResponse(BaseModel):
 
 class HarmonySpecs(BaseModel):
     melodic_part: str
-    chord: str
+    chord: int
     key: str
     tempo: int
 
@@ -31,7 +31,8 @@ class FitnessFunction(BaseModel):
     key: str
     name: str
     description: str
-    value: float
+    value: float = None
+    weight: float = 0
 
 
 class MelodySpecs(BaseModel):

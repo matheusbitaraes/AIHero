@@ -4,7 +4,6 @@ from src.utils.AIHeroGlobals import SCALED_NOTES_RANGE, NOTES_IN_OCTAVE, TIME_DI
 
 
 class TimeChangeStrategy:  # change duration of a random note, between a stablished note size
-    # todo fazer o tempo aumentado cair dentro de multiplos do time_division/8
     def __init__(self):
         self._note_change_scale = int(TIME_DIVISION / 8)
         self.note_off_interval = range(0, TIME_DIVISION, self._note_change_scale)

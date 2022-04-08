@@ -1,9 +1,6 @@
 from json import load as jload
 
-import numpy as np
-
 from src.GAN.service.GANService import GANService
-from src.service.AIHeroService import AIHeroService
 
 work_dir = 'scripts/single_gan'
 with open(f'{work_dir}/config.json') as config_file:
@@ -22,6 +19,3 @@ with open(f'{work_dir}/config.json') as config_file:
 # realiza treinamento com dados overfittados
 gan_service = GANService(config)
 gan_service.train_gans(should_generate_gif=True)
-
-# avalia para cada acorde e ve se deu certo
-# service = AIHeroService(config)
