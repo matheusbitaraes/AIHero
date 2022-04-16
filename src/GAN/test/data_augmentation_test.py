@@ -7,8 +7,8 @@ from json import load as jload
 
 import numpy as np
 
-from GAN.data.GANTrainingData import GANTrainingData
-from GAN.engine.AIHeroGAN import AIHeroGAN
+from src.GAN.data.GANTrainingData import GANTrainingData
+from src.GAN.engine.AIHeroGAN import AIHeroGAN
 from data.AIHeroData import AIHeroData
 from utils.AIHeroEnums import MelodicPart
 

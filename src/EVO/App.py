@@ -136,7 +136,7 @@ class AIHeroUI(App):
         box.size_hint_y = None
         box.height = 60
         label = Label(text=name, size_hint=(0.4, 1))
-        variable = TextInput(text=str(value), multiline=False, size_hint=(0.6, 1))  # TODO aqui
+        variable = TextInput(text=str(value), multiline=False, size_hint=(0.6, 1))
         variable.bind(text=on_text_change)
         box.add_widget(label)
         box.add_widget(variable)
@@ -183,7 +183,7 @@ class AIHeroUI(App):
         for i in range(0, self.num_compass):
             fuse = 60 / (self.bpm * 8)  # duration of 'fuse' note in seconds
             t = time.time()
-            compass_melody = ai_hero.generateMelodyArray(compassId=i)  # todo: thread this
+            compass_melody = ai_hero.generateMelodyArray(compassId=i)
             elapsed_time = time.time() - t
             print("Melody optimization {} took {}s".format(i, round(elapsed_time, 2)))
 

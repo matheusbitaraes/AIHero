@@ -1,10 +1,10 @@
 import numpy as np
 
-from GAN.engine.augmentation.FifthNoteAddStrategy import FifthNoteAddStrategy
-from GAN.engine.augmentation.NoteJoinStrategy import NoteJoinStrategy
-from GAN.engine.augmentation.OctaveChangeStrategy import OctaveChangeStrategy
-from GAN.engine.augmentation.TimeChangeStrategy import TimeChangeStrategy
-from utils.AIHeroGlobals import SCALED_NOTES_NUMBER, TIME_DIVISION
+from src.GAN.engine.augmentation.FifthNoteAddStrategy import FifthNoteAddStrategy
+from src.GAN.engine.augmentation.NoteJoinStrategy import NoteJoinStrategy
+from src.GAN.engine.augmentation.OctaveChangeStrategy import OctaveChangeStrategy
+from src.GAN.engine.augmentation.TimeChangeStrategy import TimeChangeStrategy
+from src.utils.AIHeroGlobals import SCALED_NOTES_NUMBER, TIME_DIVISION
 
 
 class AugmentationEngine:

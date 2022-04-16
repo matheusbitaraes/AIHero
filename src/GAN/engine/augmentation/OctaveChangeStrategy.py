@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils.AIHeroGlobals import SCALED_NOTES_RANGE, NOTES_IN_OCTAVE, TIME_DIVISION, SCALED_NOTES_NUMBER
+from src.utils.AIHeroGlobals import SCALED_NOTES_RANGE, NOTES_IN_OCTAVE, TIME_DIVISION, SCALED_NOTES_NUMBER
 
 
 class OctaveChangeStrategy:  # move 1 octave up or down, if possible

@@ -20,9 +20,14 @@ class MelodyRequestResponse(BaseModel):
     melody_url: str
 
 
-class HarmonySpecs(BaseModel):
-    melodic_part: str
+class HarmonySpecsInput(BaseModel):
     chord: str
+    key: str
+    tempo: int
+
+
+class HarmonySpecs(BaseModel):
+    transposition_factor: int
     key: str
     tempo: int
 
@@ -31,11 +36,12 @@ class FitnessFunction(BaseModel):
     key: str
     name: str
     description: str
-    value: float
+    value: float = None
+    weight: float = 0
 
 
 class MelodySpecs(BaseModel):
-    harmony_specs: List[HarmonySpecs]
+    harmony_specs: List[HarmonySpecsInput]
     evolutionary_specs: List[FitnessFunction]
 
 
