@@ -25,7 +25,7 @@ from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_N
 
 
 class AIHeroGAN:
-    def __init__(self, config, harmonic_function=HarmonicFunction.TONIC):
+    def __init__(self, config: dict, harmonic_function: HarmonicFunction = HarmonicFunction.TONIC):
         self.harmonic_function = harmonic_function
 
         # training
@@ -93,7 +93,7 @@ class AIHeroGAN:
             else:
                 print("no checkpoint found")
 
-    def set_verbose(self, value):
+    def set_verbose(self, value:bool):
         self._verbose = value
 
     def should_verbose(self):
@@ -245,7 +245,7 @@ class AIHeroGAN:
             "generator_loss": gen_loss
         }
 
-    def train(self, should_generate_gif=False, prefix="", num_epochs=None):
+    def train(self, should_generate_gif: bool = False, prefix: str = "", num_epochs: int = None):
         self.seed = tf.random.normal([self.num_examples_to_generate, self.noise_dim])
         try:
             dataset = self.training_data.get_as_matrix()
@@ -370,7 +370,7 @@ class AIHeroGAN:
             image = imageio.imread(filename)
             writer.append_data(image)
 
-    def generate_melody_matrix(self, num_melodies=1, new_seed=False, harmonic_function=None):
+    def generate_melody_matrix(self, num_melodies: int = 1, new_seed: bool = False, harmonic_function=None):
         predictions = self.generate_prediction(new_seed, size=num_melodies)
         np_config.enable_numpy_behavior()
         melody = tf.Variable(predictions)
@@ -378,7 +378,7 @@ class AIHeroGAN:
             melody[i, :, :, 0].assign(np.where(melody[i, :, :, 0] > 0.9, 1, -1))
         return melody.numpy()
 
-    def generate_prediction(self, new_seed=False, size=1):
+    def generate_prediction(self, new_seed: bool = False, size: int = 1):
         # Notice `training` is set to False.
         # This is so all layers run in inference mode (batchnorm).
         if new_seed:

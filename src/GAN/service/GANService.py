@@ -1,17 +1,19 @@
 import traceback
 
+from typing import List
+
 from src.GAN.engine.AIHeroGAN import AIHeroGAN
 from src.GAN.exceptions.GANExceptions import GanTrainingException
+from src.model.ApiModels import HarmonySpecs
 from src.utils.AIHeroHelper import HarmonicFunction, get_harmonic_function_of_chord
 
 
 class GANService:
     def __init__(self, config):
         self._config = config
-        # self.gan = AIHeroGAN(config)
         self.gans = self.build_gans()
 
-    def train_gans(self, verbose=False, should_generate_gif=False):
+    def train_gans(self, verbose: bool = False, should_generate_gif: bool = False):
         for function in HarmonicFunction:
             if verbose:
                 print(f"Training GAN of function: {function}")
@@ -21,23 +23,15 @@ class GANService:
                 print(f"Error training GAN for function {function}")
                 raise GanTrainingException
 
-    # def train_single_gan(self, verbose=False, should_generate_gif=False):
-    #     if verbose:
-    #         print(f"Training single GAN")
-    #     try:
-    #         self.gan.single_gan_train(should_generate_gif=should_generate_gif)
-    #     except GanTrainingException:
-    #         print(f"Error training single GAN")
-    #         raise GanTrainingException
-
-    def train_gan(self, harmonic_function, should_generate_gif=False, num_epochs=None):
+    def train_gan(self, harmonic_function: HarmonicFunction, should_generate_gif: bool = False,
+                  num_epochs: bool = None):
         return self.gans[harmonic_function.name].train(should_generate_gif=should_generate_gif, num_epochs=num_epochs)
 
-    def generate_melodies(self, specs_list):
+    def generate_melodies(self, specs_list: List[HarmonySpecs]):
         for specs in specs_list:
             return self.generate_melody(specs)
 
-    def generate_melody(self, specs=None, num_melodies=1, melody_id=""):
+    def generate_melody(self, specs: HarmonySpecs = None, num_melodies: int = 1, melody_id: str = ""):
         harmonic_function = HarmonicFunction(get_harmonic_function_of_chord(specs.transposition_factor))
         try:
             gan = self.gans[harmonic_function.name]
@@ -54,7 +48,7 @@ class GANService:
             gan_map[function.name] = AIHeroGAN(self._config, harmonic_function=function)
         return gan_map
 
-    def get_random_train_data(self, specs=None):
+    def get_random_train_data(self, specs: HarmonySpecs = None):
         harmonic_function = HarmonicFunction(get_harmonic_function_of_chord(specs.transposition_factor))
         try:
             gan = self.gans[harmonic_function.name]

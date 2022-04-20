@@ -5,6 +5,7 @@ from glob import glob
 
 import matplotlib
 import numpy as np
+from typing import List
 
 from src.data.handlers.PrettyMIDIHandler import PrettyMIDIHandler
 from src.utils.AIHeroHelper import get_harmonic_function_of_chord
@@ -23,7 +24,7 @@ class AIHeroData:
         self._spr_data = None  # [N X note_number X t]
         self._midi_handler = PrettyMIDIHandler()
 
-    def load_from_pop909_dataset(self, dataset_path=""):
+    def load_from_pop909_dataset(self, dataset_path: str = ""):
         midi_paths = [d for d in os.listdir(dataset_path)]
         for path in midi_paths:
             filename = dataset_path + path
@@ -33,11 +34,11 @@ class AIHeroData:
                 data, chord_array = self._midi_handler.load_from_pop909_file(file)
                 self.add_data(spr_data=data, chord_array=chord_array)
 
-    def save_data(self, dir="", prefix=""):
+    def save_data(self, dir: str = "", prefix: str = ""):
         np.save(f"{dir}/{prefix}spr_data", self._spr_data)
         np.save(f"{dir}/{prefix}chord_data", self._transposition_factor)
 
-    def load_spr_from_checkpoint(self, path=".", prefix=None):
+    def load_spr_from_checkpoint(self, path: str = ".", prefix: str = None):
         if prefix is None:
             sprs = glob(f"{path}/*spr_data.npy")
             chords = glob(f"{path}/*chord_data.npy")
@@ -51,11 +52,11 @@ class AIHeroData:
             chords = np.load(f"{path}/{prefix}chord_data.npy")
             self.add_data(spr_data=spr, chord_array=chords)
 
-    def load_from_midi_files(self, files):
+    def load_from_midi_files(self, files: List[str]):
         for file in files:
             self._load_from_midi_file(file)
 
-    def _load_from_midi_file(self, file):
+    def _load_from_midi_file(self, file: str):
         try:
             spr_data, chord_array = self._midi_handler.load_from_midi_file(file)
             self.add_data(spr_data, chord_array)
