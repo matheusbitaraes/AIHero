@@ -127,3 +127,16 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*.temp*
+src/GAN/data/training_checkpoints*
+scripts/single_gan/training_checkpoints*
+src/GAN/data/evidences/
+src/GAN/data/train/manual*
+src/GAN/data/train/POP909*
+src/resources/generated_melodies/
+src/resources/generated_melodies_evidences/
+src/test/results/
+fluidsynth/
+
+.idea/

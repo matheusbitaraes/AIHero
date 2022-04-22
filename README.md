@@ -1,17 +1,22 @@
 # AIHero
 AI for music improvisation
 
+TODO: insert image of the flow here
 
-agortimo genético "live" com varios objetivos:
-jazz
-dinamica de tempo de notas
-notas por tempo
-notas dentro da escala
+## Architecture
 
-requisito:
-terminar nas notas certas
+## The genetic algorithm
 
-tarefas:
-Encontrar uma forma de fazer a AI tocar audios - OK
-Econtrar forma de AI "ouvir" input do teclado (MIDI)
+## The graphical interface
+
+
+## Next steps:
+
+
+To run automated tests and generate evidences run:
+
+```commandline
+python -m unittest discover src/test
+```
+
 
