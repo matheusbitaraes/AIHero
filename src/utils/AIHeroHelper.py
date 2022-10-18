@@ -35,7 +35,7 @@ def get_harmonic_function_of_chord(chord_value):
 
 
 def convert_chord_into_factor(chord_string, key_string):
-    chord_transpose = CHORD_STRING_TO_FACTOR[chord_string.split(":")[0]]
+    chord_transpose = CHORD_STRING_TO_FACTOR[chord_string.split(":")[0]] #todo: raise error here
     key_transpose = CHORD_STRING_TO_FACTOR[key_string]
     factor = chord_transpose - key_transpose
     if factor > 0:
@@ -45,6 +45,7 @@ def convert_chord_into_factor(chord_string, key_string):
 
 
 def build_harmony_specs_from_input(specs_input):
+    #todo: chegar formato
     harmony_specs = []
     for spec in specs_input:
         harmony_specs.append(HarmonySpecs(transposition_factor=convert_chord_into_factor(spec.chord, spec.key),

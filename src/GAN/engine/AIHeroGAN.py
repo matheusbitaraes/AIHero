@@ -93,7 +93,7 @@ class AIHeroGAN(ABC):
     def train(self, should_generate_gif: bool, prefix: str, num_epochs: int):
         pass
 
-    def generate_melody_matrix(self, num_melodies: int, new_seed: bool, harmonic_function):
+    def generate_melody_matrix(self, num_melodies: int, new_seed: bool):
         predictions = self.generate_prediction(new_seed, size=num_melodies)
         np_config.enable_numpy_behavior()
         melody = tf.Variable(predictions)
