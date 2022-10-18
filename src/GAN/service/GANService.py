@@ -1,8 +1,7 @@
 import traceback
-
 from typing import List
 
-from src.GAN.engine.AIHeroGAN import AIHeroGAN
+from src.GAN.engine.AIHeroGANConvolutional import AIHeroGANConvolutional
 from src.GAN.exceptions.GANExceptions import GanTrainingException
 from src.model.ApiModels import HarmonySpecs
 from src.utils.AIHeroHelper import HarmonicFunction, get_harmonic_function_of_chord
@@ -11,6 +10,7 @@ from src.utils.AIHeroHelper import HarmonicFunction, get_harmonic_function_of_ch
 class GANService:
     def __init__(self, config):
         self._config = config
+        self._selected_gan = AIHeroGANConvolutional
         self.gans = self.build_gans()
 
     def train_gans(self, verbose: bool = False, should_generate_gif: bool = False):
@@ -45,7 +45,7 @@ class GANService:
     def build_gans(self):
         gan_map = {}
         for function in HarmonicFunction:
-            gan_map[function.name] = AIHeroGAN(self._config, harmonic_function=function)
+            gan_map[function.name] = self._selected_gan(self._config, harmonic_function=function)
         return gan_map
 
     def get_random_train_data(self, specs: HarmonySpecs = None):

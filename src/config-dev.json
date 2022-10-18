@@ -5,7 +5,7 @@
     "port": 8083,
     "host": "0.0.0.0"
   },
-  "generated_evidences_dir": "src/resources/generated_melodies_evidences",
+  "generated_evidences_dir": "generated_melodies_evidences",
   "fluidsynth_path": "fluidsynth/FluidR3_GM.sf2",
   "verbose": true,
   "enable_parallelization": true,
@@ -96,6 +96,6 @@
     }
   },
   "queue": {
-    "melody_path": "src/resources/generated_melodies"
+    "melody_path": "generated_melodies_midi"
   }
 }
