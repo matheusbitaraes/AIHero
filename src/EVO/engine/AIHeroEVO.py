@@ -10,7 +10,7 @@ import numpy as np
 from IPython import display
 
 from src.EVO.engine.Fitness import Fitness
-from src.GAN.service.GANService import GANService
+from src.GEN.service.GENService import GENService
 
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
@@ -19,7 +19,7 @@ from src.utils.AIHeroGlobals import SCALED_NOTES_RANGE, TIME_DIVISION, SCALED_NO
 
 class AIHeroEVO:
     def __init__(self, config):
-        self.gan_service = GANService(config)
+        self.gan_service = GENService(config)
         self.fitness_function = Fitness(config["evolutionary_algorithm_configs"]["fitness_function_configs"])
 
         self.gifs_evidence_dir = config["generated_evidences_dir"]

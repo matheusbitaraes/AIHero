@@ -1,0 +1,2 @@
+class GENTrainingException(Exception):
+    pass

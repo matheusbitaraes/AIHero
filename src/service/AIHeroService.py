@@ -2,7 +2,7 @@ import concurrent.futures
 import traceback
 
 from src.EVO.service.EVOService import EVOService
-from src.GAN.service.GANService import GANService
+from src.GEN.service.GENService import GENService
 from src.data.AIHeroData import AIHeroData
 from src.utils.AIHeroHelper import build_harmony_specs_from_input
 
@@ -11,7 +11,7 @@ class AIHeroService:
     def __init__(self, config):
         self._threads_enabled = config["enable_parallelization"]
         self._thread_max_workers = config["thread_max_workers"]
-        self.gan_service = GANService(config)
+        self.gen_service = GENService(config)
         self.evo_service = EVOService(config)
 
     def generate_GAN_compositions(self, melody_specs_input, melody_id):
@@ -20,7 +20,7 @@ class AIHeroService:
         melody_tuples = []
         try:
             for melody_specs in melody_specs:
-                raw_melody = self.gan_service.generate_melody(specs=melody_specs, melody_id=melody_id)
+                raw_melody = self.gen_service.generate_melody(specs=melody_specs, melody_id=melody_id)
                 melody_tuples.append((raw_melody, melody_specs.transposition_factor))
             ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
         except Exception as e:
@@ -68,7 +68,7 @@ class AIHeroService:
         melody_tuples = []
         try:
             for spec in melody_specs:
-                raw_melody = self.gan_service.get_random_train_data(specs=spec)
+                raw_melody = self.gen_service.get_random_train_data(specs=spec)
                 melody_tuples.append((raw_melody, spec.transposition_factor))
             ai_hero_data.load_from_GAN_melody_raw(melody_tuples)
         except Exception as e:

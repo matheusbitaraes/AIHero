@@ -1,49 +1,9 @@
-O que foi feito:
- - Falha com o POP909 e decidi manter como estava
-    - pra isso precisei fazer muita reestruturação.
- - mudança para harmonia funcional.
-    - conversei com um amigo que da aula de usica e mandei um e-mail para outro professor sobre isso também
- - tentativa de uma só GAN - ainda não deu
- - considerando usar LSTM agora na GAN (ou transformer)
- - critério de parada utilizando FID.
- - (augmentation de transposição de oitava estava deixando FID ruim)
+ - mudar o modelo por config
+ - limpeza do código
+ - trocar GAN por GEN, ou modelo
+ - unico arquivo de config
+ - arquivos de config por tipos de modelo
 
- - quase terminando a versão de agora
- - pretendo começar mais seriamente a escrita do trabalho
- - depoi tentar remodelar a GAN, fazendo o gerador ser uma LSTM ou uma arquitetura com Transformer
- - arquitetura multistream/multiflow
-
-
- - ver com o que que eu vou comparar
- - pegar outros modelos
- - FID no evolucionario
- - pensar em perguntas:
-        - utilização da gan como população é melhor que não?
-        - o quão melhor/pior minha abordagem é
-
-- Publicação IEEE:
-	- Apresentação:
-		- pode não apresentar?
-		- todo mundo selecionado para apresentação irá apresentar?
-		- o fred vai?
-		- o que eles recomendam?
-	- Correções:
-		- como que faz essas correções? tem que responder 
-		- todos os revisores?
-
-mandar pro CBA
-
-4500 Inscrição
-10k Passagem
-5k Hotel
-ele não vai
-
-pagar o registro e não apresentar
-provavelmetne poster
-IEEExplore
-
-americanas
-o de maior invergadura
-
-brasys -> publica no IEEE
-CBA
+ Perguntar:
+    - Se ter essa LSTM tá bom para comparar tbm
+    - se faz sentido a lstm demorar muito mesmo

@@ -21,7 +21,7 @@ class TestAIHeroData(TestCase):
     def test_load_manual_spr_and_with_chord_on_different_keys(self):
         # load a file
         data = AIHeroData()
-        data.load_spr_from_checkpoint("src/GAN/data/train/manual")
+        data.load_spr_from_checkpoint("src/GEN/data/train/manual")
 
         # add a chord being played on every SPR
         data.execute_function_on_data(add_chord)

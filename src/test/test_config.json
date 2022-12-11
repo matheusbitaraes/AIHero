@@ -12,12 +12,12 @@
   "thread_max_workers": 5,
   "checkpoint": {
     "use_checkpoint": true,
-    "checkpoint_folder": "src/GAN/data/training_checkpoints"
+    "checkpoint_folder": "src/GEN/data/training_checkpoints"
   },
   "training": {
     "num_examples_to_generate": 4,
     "num_epochs": 60,
-    "train_data_folder": "src/GAN/data/train/manual",
+    "train_data_folder": "src/GEN/data/train/manual",
     "noise_dim": 100,
     "max_batch_size": 50,
     "batch_percentage_alt": 0.1,
