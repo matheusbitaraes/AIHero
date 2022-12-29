@@ -140,7 +140,7 @@ evidences/generated_melodies_evidences/
 generated_melodies_midi
 src/test/results/
 fluidsynth/
-scripts/gan_generated_midi/
-scripts/ganevo_generated_midi/
-scripts/testdata_generated_midi/
+scripts/gan_generated_midi*
+scripts/ganevo_generated_midi*
+scripts/testdata_generated_midi*
 .idea/
