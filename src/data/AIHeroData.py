@@ -2,10 +2,10 @@
 import os
 import traceback
 from glob import glob
+from typing import List
 
 import matplotlib
 import numpy as np
-from typing import List
 
 from src.data.handlers.PrettyMIDIHandler import PrettyMIDIHandler
 from src.utils.AIHeroHelper import get_harmonic_function_of_chord
@@ -169,6 +169,15 @@ class AIHeroData:
             print(f"Failed exporting as midi: {e}")
             print(traceback.format_exc())
 
+    def export_each_bar_as_midi(self, file_name="teste"):
+        for i in range(self._spr_data.shape[0]):
+            filename = file_name + str(i)
+            if np.sum(self._spr_data[i:i + 1, :, :, :]) != (TIME_DIVISION * SCALED_NOTES_NUMBER * -1):  # data is not only -1s
+                self._midi_handler.export_as_midi(self._spr_data[i:i + 1, :, :, :],
+                                                  self._transposition_factor[i:i + 1, :],
+                                                  filename)
+            else:
+                print(f"bar {i} is empty, skipping")
     def append_track_and_export_as_midi(self, midi_file, file_name="teste"):
         try:
             self._midi_handler.append_track_and_export_as_midi(self._spr_data, self._transposition_factor, midi_file,

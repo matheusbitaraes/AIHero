@@ -15,7 +15,7 @@ from tensorflow.python.ops.numpy_ops import np_config
 from src.GEN.data.GANTrainingData import GANTrainingData
 from src.GEN.engine.convolutionalGAN.Discriminator import Discriminator
 from src.GEN.engine.convolutionalGAN.Generator import Generator
-from src.GEN.engine.quality.FIDQualityModel import FIDQualityModel
+from src.quality.FID.FIDQualityModel import FIDQualityModel
 from src.utils.AIHeroGlobals import TIME_DIVISION, SCALED_NOTES_NUMBER, SCALED_NOTES_RANGE
 from src.utils.AIHeroHelper import HarmonicFunction
 
