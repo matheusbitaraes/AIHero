@@ -128,19 +128,20 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-*.temp*
-src/GEN/data/training_checkpoints*
-scripts/single_gan/training_checkpoints*
-src/GEN/data/evidences/
+.temp/*
+src/GEN/data/training_checkpoints/*
+scripts/single_gan/training_checkpoints/*
+src/GEN/data/evidences/*
 src/GEN/data/train/manual*
 src/GEN/data/train/POP909*
-src/resources/generated_melodies/
-src/resources/generated_melodies_evidences/
-evidences/generated_melodies_evidences/
-generated_melodies_midi
-src/test/results/
+src/resources/generated_melodies/*
+src/resources/generated_melodies_evidences/*
+evidences/generated_melodies_evidences/*
+generated_melodies_midi/*
+src/test/results/*
 fluidsynth/
-scripts/quality_comparison/gan_generated_midi
-scripts/quality_comparison/ganevo_generated_midi
-scripts/quality_comparison/testdata_generated_midi
+scripts/quality_comparison/gan_generated_midi/*
+scripts/quality_comparison/ganevo_generated_midi/*
+scripts/quality_comparison/testdata_generated_midi/*
+scripts/quality_comparison/lstm_generated_midi/*
 .idea/
