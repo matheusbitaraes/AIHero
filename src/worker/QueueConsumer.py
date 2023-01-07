@@ -41,8 +41,7 @@ class QueueConsumer:
                 result.append_track_and_export_as_midi(file_name=f"{self.melody_path}/{melody_id}",
                                                        midi_file=harmony_file)
             if source == "gan":
-                result = self.ai_hero_service.generate_GAN_compositions(harmony_specs,
-                                                                        melody_id=melody_id)
+                result = self.ai_hero_service.generate_GEN_compositions(harmony_specs, melody_id=melody_id)
                 result.append_track_and_export_as_midi(file_name=f"{self.melody_path}/{melody_id}",
                                                        midi_file=harmony_file)
             if source == "train":

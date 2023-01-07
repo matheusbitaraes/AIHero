@@ -8,13 +8,13 @@ from src.utils.AIHeroHelper import build_harmony_specs_from_input
 
 
 class AIHeroService:
-    def __init__(self, config):
+    def __init__(self, config, model_name='convolutional_gan'):
         self._threads_enabled = config["enable_parallelization"]
         self._thread_max_workers = config["thread_max_workers"]
-        self.gen_service = GENService(config)
+        self.gen_service = GENService(config, model_name)
         self.evo_service = EVOService(config)
 
-    def generate_GAN_compositions(self, melody_specs_input, melody_id):
+    def generate_GEN_compositions(self, melody_specs_input, melody_id):
         melody_specs = build_harmony_specs_from_input(melody_specs_input)
         ai_hero_data = AIHeroData()
         melody_tuples = []

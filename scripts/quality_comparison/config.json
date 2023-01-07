@@ -9,7 +9,7 @@
   "fluidsynth_path": "fluidsynth/FluidR3_GM.sf2",
   "verbose": true,
   "enable_parallelization": true,
-  "thread_max_workers": 4,
+  "thread_max_workers": 2,
   "checkpoint": {
     "use_checkpoint": true,
     "checkpoint_folder": "src/GEN/data/training_checkpoints"

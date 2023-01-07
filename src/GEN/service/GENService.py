@@ -9,9 +9,9 @@ from src.utils.AIHeroHelper import HarmonicFunction, get_harmonic_function_of_ch
 
 
 class GENService:
-    def __init__(self, config):
+    def __init__(self, config, model_name='convolutional_gan'):
         self._config = config
-        self._selected_model = self._get_model_by_config(config)
+        self._selected_model = self._get_model_by_name(model_name)
         self.models = self.build_models()
 
     def train_models(self, verbose: bool = False, should_generate_gif: bool = False):
@@ -60,9 +60,8 @@ class GENService:
             print(f"exception in GAN Service: {e}")
             print(traceback.format_exc())
 
-    def _get_model_by_config(self, config):
-        lstm_name = LSTM(config).get_name()
-        if config["model_name"] == lstm_name:
+    def _get_model_by_name(self, model_name):
+        if model_name == 'lstm':
             return LSTM
         else:
             return AIHeroGANConvolutional

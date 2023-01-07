@@ -11,6 +11,7 @@ GENERATE_FRESH_QUALITY_MEASUREMENTS = True
 WORK_DIR = 'scripts/quality_comparison'
 GAN_DIRECTORY = f'{WORK_DIR}/gan_generated_midi'
 EVO_DIRECTORY = f'{WORK_DIR}/ganevo_generated_midi'
+LSTM_DIRECTORY = f'{WORK_DIR}/lstm_generated_midi'
 TESTDATA_DIRECTORY = f'{WORK_DIR}/testdata_generated_midi'
 
 # Enable memory growth for the first GPU
@@ -32,9 +33,11 @@ config = {
     "QUALITY_DATA_NAME": "quality_metrics_checkpoint",
     "GAN_DIRECTORY": GAN_DIRECTORY,
     "EVO_DIRECTORY": EVO_DIRECTORY,
+    "LSTM_DIRECTORY": LSTM_DIRECTORY,
     "TESTDATA_DIRECTORY": TESTDATA_DIRECTORY,
     "GAN_DIRECTORY_PATH": glob(f"{GAN_DIRECTORY}/*"),
     "EVO_DIRECTORY_PATH": glob(f"{EVO_DIRECTORY}/*"),
+    "LSTM_DIRECTORY_PATH": glob(f"{LSTM_DIRECTORY}/*"),
     "TESTDATA_DIRECTORY_PATH": glob(f"{TESTDATA_DIRECTORY}/*"),
     "NUM_MELODIES_EACH": 1
 
@@ -46,6 +49,7 @@ if CLEAN_OLD_MELODIES:
     print('Cleaning old data...')
     helper.delete_files_with_pattern(config["GAN_DIRECTORY"], "*.mid")
     helper.delete_files_with_pattern(config["EVO_DIRECTORY"], "*.mid")
+    helper.delete_files_with_pattern(config["LSTM_DIRECTORY"], "*.mid")
 
 if GENERATE_FRESH_DATA:
     print('Generating data...')

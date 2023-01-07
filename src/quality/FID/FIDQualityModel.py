@@ -44,7 +44,7 @@ class FIDQualityModel:  # quality model using FID (Frechet Inception Distance) m
         fid_array = []
         sample_size = min(a.shape[0], b.shape[0])
         batch_size = int(sample_size * 0.2)
-        num_evaluations = 500
+        num_evaluations = 200
         a_sequence = np.arange(sample_size)
         b_sequence = np.arange(sample_size)
         for _ in range(num_evaluations):

@@ -27,7 +27,7 @@ class TestAIHeroService(TestCase):
 
     def test_make_a_blues_sequence_from_gan_data(self):
         harmony_specs = build_big_request_body().melody_specs.harmony_specs
-        data = self.ai_hero_service.generate_GAN_compositions(harmony_specs, melody_id="id")
+        data = self.ai_hero_service.generate_GEN_compositions(harmony_specs, melody_id="id")
 
         # add a chord being played on every SPR
         data.execute_function_on_data(add_chord)
@@ -45,7 +45,7 @@ class TestAIHeroService(TestCase):
     def test_make_a_blues_sequence_from_gan_data_with_blues_base(self):
         input = build_request_body()
         harmony_specs = input.melody_specs.harmony_specs
-        data = self.ai_hero_service.generate_GAN_compositions(harmony_specs, melody_id="id")
+        data = self.ai_hero_service.generate_GEN_compositions(harmony_specs, melody_id="id")
 
         data.append_track_and_export_as_midi(midi_file="src/test/resources/blues_base_0.mid",
                                              file_name="src/test/results/test_make_a_blues_sequence_from_gan_data_with_blues_base")

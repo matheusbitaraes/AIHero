@@ -26,7 +26,7 @@ with open(f'{work_dir}/config.json') as config_file:
 service = AIHeroService(config)
 
 harmony_specs = build_big_request_body().melody_specs.harmony_specs
-data = service.generate_GAN_compositions(harmony_specs, melody_id="id")
+data = service.generate_GEN_compositions(harmony_specs, melody_id="id")
 
 # add a chord being played on every SPR
 data.execute_function_on_data(add_chord)
