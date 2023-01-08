@@ -14,7 +14,9 @@ class AIHeroService:
         self.gen_service = GENService(config, model_name)
         self.evo_service = EVOService(config)
 
-    def generate_GEN_compositions(self, melody_specs_input, melody_id):
+    def clear(self):
+        self.gen_service.clear_models()
+    def generate_GEN_compositions(self, melody_specs_input, melody_id=""):
         melody_specs = build_harmony_specs_from_input(melody_specs_input)
         ai_hero_data = AIHeroData()
         melody_tuples = []

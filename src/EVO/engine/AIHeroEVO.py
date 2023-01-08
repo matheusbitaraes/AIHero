@@ -19,7 +19,9 @@ from src.utils.AIHeroGlobals import SCALED_NOTES_RANGE, TIME_DIVISION, SCALED_NO
 
 class AIHeroEVO:
     def __init__(self, config):
-        self.gan_service = GENService(config)
+        self.gen_service = GENService(config)
+        self._use_discriminator_as_fitness_function = \
+        config["evolutionary_algorithm_configs"]["fitness_function_configs"]["use_gan_discriminator"]
         self.fitness_function = Fitness(config["evolutionary_algorithm_configs"]["fitness_function_configs"])
 
         self.gifs_evidence_dir = config["generated_evidences_dir"]
@@ -64,11 +66,15 @@ class AIHeroEVO:
             start = time.time()
 
             # fitness calculation
-            for j in range(0, self._pop_size):
-                fitness[j], fitness_per_function = self.fitness_function.eval(pop[j, :, :], melody_specs)
+            if self._use_discriminator_as_fitness_function:
+                fitness = self.gen_service.evaluate_melodies_with_discriminator(pop, melody_specs)
+            else:
+                fitness_per_function = ""
+                for j in range(0, self._pop_size):
+                    fitness[j], fitness_per_function = self.fitness_function.eval(pop[j, :, :], melody_specs)
+                best_fitness_per_function.append(fitness_per_function)
 
             best_fitness.append(fitness[np.argsort(-fitness)[0]])
-            best_fitness_per_function.append(fitness_per_function)
             best_individual = pop[np.argsort(-fitness)[0]]
 
             current_time_min = current_time_min + (time.time() - start) / 60
@@ -97,7 +103,7 @@ class AIHeroEVO:
                 # mutation: note flip
                 for idm in range(children.shape[0]):
                     if random() <= self._pm:
-                        melody = self.gan_service.generate_melody(specs=melody_specs, num_melodies=1)
+                        melody = self.gen_service.generate_melody(specs=melody_specs, num_melodies=1)
                         raw_children = melody[:, :, :, 0]
                         children[idm, :, :] = apply_filters(raw_children)
 
@@ -118,7 +124,7 @@ class AIHeroEVO:
 
     def generate_population_with_gan(self, melody_specs):
         pop = np.zeros([self._pop_size, SCALED_NOTES_NUMBER, TIME_DIVISION])
-        melodies = self.gan_service.generate_melody(specs=melody_specs, num_melodies=self._pop_size)
+        melodies = self.gen_service.generate_melody(specs=melody_specs, num_melodies=self._pop_size)
         pop[:, :, :] = melodies[:, :, :, 0]
         return pop
 

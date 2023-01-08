@@ -33,6 +33,9 @@ class AIHeroData:
                 self.add_data(spr_data=data, chord_array=chord_array)
 
     def save_data(self, dir: str = "", prefix: str = ""):
+        path = f"{dir}"
+        if not os.path.exists(path):
+            os.makedirs(path)
         np.save(f"{dir}/{prefix}spr_data", self._spr_data)
         np.save(f"{dir}/{prefix}chord_data", self._transposition_factor)
 

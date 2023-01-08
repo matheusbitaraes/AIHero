@@ -80,6 +80,12 @@ class AIHeroGEN(ABC):
     def train(self, should_generate_gif: bool, prefix: str, num_epochs: int):
         pass
 
+    def clear(self):
+        tf.keras.backend.clear_session()
+
+    def evaluate_with_discriminator(self, data):
+        return self.discriminator.model(data)
+
     def generate_melody_matrix(self, num_melodies: int, new_seed: bool):
         predictions = self.generate_prediction(new_seed, size=num_melodies)
         np_config.enable_numpy_behavior()

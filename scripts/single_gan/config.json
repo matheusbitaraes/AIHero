@@ -38,6 +38,7 @@
     "child_mutation_probability": 0.2,
     "note_change_probability": 0.05,
     "fitness_function_configs": {
+      "use_gan_discriminator": false,
       "scale":"minor_blues_scale",
       "function_sets": [
         {

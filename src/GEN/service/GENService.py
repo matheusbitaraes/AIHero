@@ -14,6 +14,10 @@ class GENService:
         self._selected_model = self._get_model_by_name(model_name)
         self.models = self.build_models()
 
+    def clear_models(self):
+        for key in self.models.keys():
+            self.models[key].clear()
+
     def train_models(self, verbose: bool = False, should_generate_gif: bool = False):
         for function in HarmonicFunction:
             if verbose:
@@ -42,6 +46,12 @@ class GENService:
         except Exception as e:
             print(f"exception in GAN Service: {e}")
             print(traceback.format_exc())
+
+    def evaluate_melodies_with_discriminator(self, melody_matrix, specs: HarmonySpecs = None):
+        harmonic_function = HarmonicFunction(get_harmonic_function_of_chord(specs.transposition_factor))
+        model = self.models[harmonic_function.name]
+        fitness_tensor = model.evaluate_with_discriminator(melody_matrix)
+        return fitness_tensor.numpy()[:, 0]
 
     def build_models(self):
         model_map = {}
