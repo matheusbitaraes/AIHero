@@ -10,7 +10,7 @@ from mingus.midi import midi_file_in
 from src.data.AIHeroData import AIHeroData
 from src.utils.AIHeroHelper import HarmonicFunction
 
-midi_root = "/home/matheus/Documentos/AIHero/src/GEN/data/train/"
+midi_root = "src/GEN/data/train/"
 ckpt_save_dir = "src/GEN/data/train/manual"
 
 for function in HarmonicFunction:
