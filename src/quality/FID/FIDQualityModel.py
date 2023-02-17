@@ -12,6 +12,8 @@ class FIDQualityModel:  # quality model using FID (Frechet Inception Distance) m
     def __init__(self):
         self._inception_model_shape = (299, 299, 3)
         self._fid_model = InceptionV3(include_top=False, pooling='avg', input_shape=self._inception_model_shape)
+        self._num_fid_evaluations = 100
+        self._batch_percentage = 0.2
 
     # @tf.function
     def calculate_quality(self, data1, data2):
@@ -43,8 +45,8 @@ class FIDQualityModel:  # quality model using FID (Frechet Inception Distance) m
         b = dataset2.get_spr_as_matrix()
         fid_array = []
         sample_size = min(a.shape[0], b.shape[0])
-        batch_size = int(sample_size * 0.2)
-        num_evaluations = 200
+        batch_size = int(sample_size * self._batch_percentage)
+        num_evaluations = self._num_fid_evaluations
         a_sequence = np.arange(sample_size)
         b_sequence = np.arange(sample_size)
         for _ in range(num_evaluations):

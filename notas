@@ -1,4 +1,9 @@
-- gan com discriminador como função de fitness.
+- gan com discriminador como função de fitness. - ok (ficou mei ruim)
 - bons plots de distancia KLD e OA para mostrar.
-- deixar tudo pronto na parte escrita?
+- Fazer uma forma de selecionar os modelos na hora de requisitar.
+- Novos dados de treinamento??
 - criar sistema de teste online.
+
+
+treinamento da GAN: 410 epocas
+Treinamento da LSTM: 160 epocas (augmentation diminuido o replication factor de 6 pra 1 por conta de problemas de memoria)

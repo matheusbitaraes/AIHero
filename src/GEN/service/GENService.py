@@ -9,16 +9,16 @@ from src.utils.AIHeroHelper import HarmonicFunction, get_harmonic_function_of_ch
 
 
 class GENService:
-    def __init__(self, config, model_name='convolutional_gan'):
+    def __init__(self, config):
         self._config = config
-        self._selected_model = self._get_model_by_name(model_name)
+        self._selected_model = self._get_model_by_name(config['model_name'])
         self.models = self.build_models()
 
     def clear_models(self):
         for key in self.models.keys():
             self.models[key].clear()
 
-    def train_models(self, verbose: bool = False, should_generate_gif: bool = False):
+    def train_models(self, verbose: bool = True, should_generate_gif: bool = False):
         for function in HarmonicFunction:
             if verbose:
                 print(f"Training GAN of function: {function}")

@@ -72,7 +72,7 @@ class LSTM(AIHeroGEN):
             seeds = np.concatenate((seeds, output_int), axis=1)
 
         prediction = -1 * np.ones([size, SCALED_NOTES_NUMBER, sequence_size, 1])
-        for i in range(seeds.shape[0]): # this method can be optimized
+        for i in range(seeds.shape[0]):  # this method can be optimized
             for j in range(seeds.shape[1] - 1):
                 if seeds[i, j] != 48:
                     prediction[i, int(seeds[i, j]), j, 0] = 1
@@ -83,6 +83,11 @@ class LSTM(AIHeroGEN):
         inputs, targets = self.training_data.get_as_LSTM_training_sequences()  # num_samples, midi_notes, time_step, ?
 
         batch_size = min(self.BATCH_SIZE, np.int(np.int(np.ceil(inputs.shape[0] * self.BATCH_PERCENTAGE))))
+
+        if self._verbose:
+            print(f"training {self._model_name} [{self.harmonic_function.name}]..."
+                  f"batch_size={batch_size}, num_epochs={self.num_epochs}")
+
         self.model.fit(inputs,
                        targets,
                        epochs=self.num_epochs,

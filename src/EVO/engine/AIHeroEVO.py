@@ -67,12 +67,13 @@ class AIHeroEVO:
 
             # fitness calculation
             if self._use_discriminator_as_fitness_function:
-                fitness = self.gen_service.evaluate_melodies_with_discriminator(pop, melody_specs)
-            else:
-                fitness_per_function = ""
-                for j in range(0, self._pop_size):
-                    fitness[j], fitness_per_function = self.fitness_function.eval(pop[j, :, :], melody_specs)
-                best_fitness_per_function.append(fitness_per_function)
+                discr_fitness = self.gen_service.evaluate_melodies_with_discriminator(pop, melody_specs)
+            fitness_per_function = ""
+            for j in range(0, self._pop_size):
+                fitness[j], fitness_per_function = self.fitness_function.eval(pop[j, :, :], melody_specs)
+                if self._use_discriminator_as_fitness_function:
+                    fitness[j] = fitness[j]*0.8 + discr_fitness[j]*0.2
+            best_fitness_per_function.append(fitness_per_function)
 
             best_fitness.append(fitness[np.argsort(-fitness)[0]])
             best_individual = pop[np.argsort(-fitness)[0]]

@@ -3,10 +3,11 @@ from glob import glob
 import tensorflow as tf
 
 from scripts.quality_comparison.HelperMethods import HelperMethods
+import sys
 
-CLEAN_OLD_MELODIES = True
-GENERATE_FRESH_DATA = True
-GENERATE_FRESH_QUALITY_MEASUREMENTS = True
+CLEAN_OLD_MELODIES = False
+GENERATE_FRESH_DATA = False
+GENERATE_FRESH_QUALITY_MEASUREMENTS = False
 
 WORK_DIR = 'scripts/quality_comparison'
 GAN_DIRECTORY = f'{WORK_DIR}/gan_generated_midi'
@@ -14,6 +15,8 @@ EVO_DIRECTORY = f'{WORK_DIR}/ganevo_generated_midi'
 EVO_ALT_DIRECTORY = f'{WORK_DIR}/ganevoalt_generated_midi'
 LSTM_DIRECTORY = f'{WORK_DIR}/lstm_generated_midi'
 TESTDATA_DIRECTORY = f'{WORK_DIR}/testdata_generated_midi'
+
+sys.stdout = open(f'{WORK_DIR}/quality_experiment.log', 'w')
 
 # Enable memory growth for the first GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')

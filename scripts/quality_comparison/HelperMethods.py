@@ -63,93 +63,55 @@ class HelperMethods:
             for metric in result.keys():
                 quality_metrics[model['NAME'] + '_' + metric] = result[metric]
 
-            print(f"calculating FID for dataset ${model['NAME']}")
+            print(f"calculating FID for dataset {model['NAME']}")
             fid_array = fid_model.calculate_qualities(dataset, self.training_data.ai_hero_data)
-            quality_metrics[model["NAME"]+"_FID_array"] = fid_array
+            quality_metrics[model["NAME"] + "_FID_array"] = fid_array
 
         # Save the dictionary to a file
         with open(f"{self.quality_config['WORK_DIR']}/{self.quality_config['QUALITY_DATA_NAME']}.pkl", 'wb') as f:
             pickle.dump(quality_metrics, f)
         return quality_metrics
 
+    def _add_metric(self, quality_data, data, key, inner_key, metrics, model_names):
+        for metric in metrics:
+            if metric in inner_key:
+                for name in model_names:
+                    if name + '_' in key:
+
+                        # gambiarra
+                        if not (name == 'EVO' and 'ALT' in key):
+                            data[metric][name][key.replace(name + '_', '')] = quality_data[key][inner_key]
+
+    def _get_distance_metrics(self, quality_data):
+        metrics_list = ['kld_intra1_inter',
+                        'oa_intra1_inter',
+                        'kld_intra2_inter',
+                        'oa_intra2_inter',
+                        'kld_intra1_intra2',
+                        'oa_intra1_intra2']
+        models_list = ['GAN', 'EVO', 'EVO_ALT', 'LSTM']
+        metrics_data = {}
+        for metric in metrics_list:
+            metrics_data[metric] = {}
+            for model in models_list:
+                metrics_data[metric][model] = {}
+        for key in quality_data.keys():
+            if isinstance(quality_data[key], dict):
+                for inner_key in quality_data[key].keys():
+                    if quality_data[key][inner_key] != 0:
+                        self._add_metric(quality_data, metrics_data, key, inner_key, metrics_list, models_list)
+        return metrics_data
+
     def generate_quality_plots(self):
         with open(f"{self.quality_config['WORK_DIR']}/{self.quality_config['QUALITY_DATA_NAME']}.pkl", 'rb') as f:
             quality_data = pickle.load(f)
 
-        self._print_fid_stuff(quality_data)
-
-        # gan_kld = []
-        # evo_kld = []
-        # gan_oa = []
-        # evo_oa = []
-        # metrics = {
-        #     'KLD': {
-        #         'GAN': {
-        #
-        #         },
-        #         'EVO': {
-        #
-        #         },
-        #         'LSTM': {
-        #
-        #         }
-        #     },
-        #     'OA': {
-        #         'GAN': {
-        #
-        #         },
-        #         'EVO': {
-        #
-        #         },
-        #         'LSTM': {
-        #
-        #         }
-        #     }
-        # }
-        # for key in quality_data.keys():
-        #     if isinstance(quality_data[key], dict):
-        #         for inner_key in quality_data[key].keys():
-        #             if quality_data[key][inner_key] != 0:
-        #                 if 'kld' in inner_key:
-        #                     if 'GAN' in key:
-        #                         gan_kld.append(quality_data[key][inner_key])
-        #                         metrics['KLD']['GAN'][key.replace('GAN_', '').replace('EVO_', '')] = quality_data[key][
-        #                             inner_key]
-        #                     if 'EVO' in key:
-        #                         evo_kld.append(quality_data[key][inner_key])
-        #                         metrics['KLD']['EVO'][key.replace('GAN_', '').replace('EVO_', '')] = quality_data[key][
-        #                             inner_key]
-        #                     if 'LSTM' in key:
-        #                         evo_kld.append(quality_data[key][inner_key])
-        #                         metrics['KLD']['LSTM'][key.replace('LSTM_', '')] = quality_data[key][
-        #                             inner_key]
-        #                 if 'oa' in inner_key:
-        #                     if 'GAN' in key:
-        #                         gan_oa.append(quality_data[key][inner_key])
-        #                         metrics['OA']['GAN'][key.replace('GAN_', '').replace('EVO_', '')] = quality_data[key][
-        #                             inner_key]
-        #                     if 'EVO' in key:
-        #                         evo_oa.append(quality_data[key][inner_key])
-        #                         metrics['OA']['EVO'][key.replace('GAN_', '').replace('EVO_', '')] = quality_data[key][
-        #                             inner_key]
-        #                     if 'LSTM' in key:
-        #                         evo_oa.append(quality_data[key][inner_key])
-        #                         metrics['OA']['LSTM'][key.replace('LSTM_', '')] = quality_data[key][
-        #                             inner_key]
-
-        # plt.figure(figsize=(20, 10))
-        # plt.title("KLDs")
-        # dic_gan = metrics['KLD']['GAN']
-        # dic_evo = metrics['KLD']['EVO']
-        # dic_lstm = metrics['KLD']['LSTM']
-        # self._plot_chart(dic_gan, dic_evo, dic_lstm, 'KLDs')
-        #
-        # plt.figure(figsize=(20, 10))
-        # plt.title("OAs")
-        # dic_gan = metrics['OA']['GAN']
-        # dic_evo = metrics['OA']['EVO']
-        # dic_lstm = metrics['OA']['LSTM']
-        # self._plot_chart(dic_gan, dic_evo, dic_lstm, 'OAs')
+        models_comparison_a = ['GAN', 'EVO', 'LSTM']
+        models_comparison_b = ['EVO', 'EVO_ALT']
+        self._print_mgeval_stuff(quality_data, models_comparison_a, title='exp 2')
+        self._print_fid_stuff(quality_data, models_comparison_a, title='exp 2')
+        self._print_mgeval_stuff(quality_data, models_comparison_b, title='exp 3')
+        self._print_fid_stuff(quality_data, models_comparison_b, title='exp 3')
 
     def delete_files_with_pattern(self, dir, pattern):
         files = glob.glob(os.path.join(dir, pattern))
@@ -169,53 +131,144 @@ class HelperMethods:
 
         return a, b
 
-    def _plot_chart(self, dic_gan, dic_evo, dic_lstm, filename):
+    def _plot_chart(self, dic_gan, dic_evo, dic_evo_alt, dic_lstm, filename):
         proportions_gan = []
         proportions_evo = []
+        proportions_evoalt = []
         proportions_lstm = []
         labels = []
         for key in dic_gan.keys():
             # a, b = self._scale_values(dic_gan[key], dic_evo[key])
             proportions_gan.append(dic_gan[key])
             proportions_evo.append(dic_evo[key])
+            proportions_evoalt.append(dic_evo_alt[key])
             proportions_lstm.append(dic_lstm[key])
             labels.append(key)
 
-        plt.bar(labels, proportions_gan, alpha=0.5, label='GAN')
-        plt.bar(labels, proportions_evo, alpha=0.5, label='EVO')
-        plt.bar(labels, proportions_lstm, alpha=0.5, label='LSTM')
-        # plt.xticks(labels, labels, rotation=45)
+        x = np.arange(len(labels))  # the label locations
+        width = 0.2  # the width of the bars
+
+        ax = plt.subplot()
+        ax.bar(x, proportions_gan, width, alpha=0.5, label='GAN')
+        ax.bar(x + width, proportions_evo, width, alpha=0.5, label='EVO')
+        ax.bar(x + width * 2, proportions_evoalt, width, alpha=0.5, label='EVO_ALT')
+        ax.bar(x + width * 3, proportions_lstm, width, alpha=0.5, label='LSTM')
+        ax.set_xticks(x, labels)
 
         plt.legend()
         plt.savefig(f"{self.quality_config['WORK_DIR']}/plots/{filename}.png")
 
-    def _print_fid_stuff(self, quality_data):
+    def _print_fid_stuff(self, quality_data, models_list, title):
+        fid_data = {
+            'GAN': quality_data['GAN_FID_array'],
+            'EVO': quality_data['EVO_FID_array'],
+            'EVO_ALT': quality_data['EVO_ALT_FID_array'],
+            'LSTM': quality_data['LSTM_FID_array']
+        }
 
-        FID_metrics = pd.DataFrame({
-            'GAN_FID': quality_data['GAN_FID_array'],
-            'EVO_FID': quality_data['EVO_FID_array'],
-            'EVOALT_FID': quality_data['EVOALT_FID_array'],
-            'LSTM_FID': quality_data['LSTM_FID_array']
-        })
+        # filter fid_data according to models_list:
+        fid_data = {key: fid_data[key] for key in models_list}
 
-        # plots with original dataset
-        fig, ax = plt.subplots()
-        ax.set_title(f"FID boxplots ({len(FID_metrics['GAN_FID'])} sampels)")
-        FID_metrics.boxplot(ax=ax)
-        plt.savefig(f"{self.quality_config['WORK_DIR']}/plots/FID_boxpot.png")
+        FID_metrics = pd.DataFrame(fid_data)
 
-        fida = FID_metrics['GAN_FID']
-        fidb = FID_metrics['EVO_FID']
-        fidc = FID_metrics['EVOALT_FID']
-        fidd = FID_metrics['LSTM_FID']
-        print(f"GAN FID:{np.mean(fida)} +- {np.std(fida)}\n"
-              f"EVO FID:{np.mean(fidb)} +- {np.std(fidb)}\n"
-              f"EVOALT FID:{np.mean(fidc)} +- {np.std(fidc)}\n"
-              f"LSTM FID:{np.mean(fidd)} +- {np.std(fidd)}\n")
+        fids = []
+        text = 'Média e desvio padrão:\n'
+        for model_name in models_list:
+            fids.append(FID_metrics[model_name])
+            text += f"{model_name}: {np.mean(FID_metrics[model_name]):.3f}+-{np.std(FID_metrics[model_name]):.3f}\n"
+            print(
+                f"{title}\n \\textit{{{model_name}}} & {np.mean(FID_metrics[model_name]):.3f}\pm{np.std(FID_metrics[model_name]):.3f}")
 
         # perform Nemenyi post-hoc test
-        discr_data = np.array([fida, fidb, fidc, fidd])
+        discr_data = np.array(fids)
 
         test = sph.posthoc_nemenyi_friedman(discr_data.T)
         print(f"p-values of posthoc Nemenyi Test (FID)")
-        print(test)
+        test.columns = models_list
+        test.index = models_list
+        print(test.round(4))
+
+        # plots with original dataset
+        fig, ax = plt.subplots()
+        fig.set_size_inches(8, 4)
+        ax.set_title(f"{title} - Boxplots de FIDs ({len(FID_metrics['EVO'])} amostras)")
+        ax.text(1.05, 0.5, text + '\n\n' + 'p-valores do teste de Nemenyi:\n' + test.round(4).to_string(), #.to_latex(),
+                transform=ax.transAxes,
+                fontsize=8)
+        plt.subplots_adjust(right=.7)   
+        FID_metrics.boxplot(ax=ax)
+        plt.savefig(f"{self.quality_config['WORK_DIR']}/plots/{title}_FID_boxpot.png")
+
+    def _print_mgeval_stuff(self, quality_data, models_list, title):
+        distance_metrics = self._get_distance_metrics(quality_data)
+        selected_metrics = ['total_used_pitch', 'pitch_range', 'avg_IOI', 'total_used_note',
+                            'total_pitch_class_histogram', 'note_length_hist', 'note_length_transition_matrix',
+                            'pitch_class_transition_matrix']
+        # self._metric_comparison_plots(distance_metrics['kld_intra1_inter'], title=f'{title}',
+        #                               filename=f'{title}_KLD_1',
+        #                               selected_metrics=selected_metrics, models=models_list)
+        # self._metric_comparison_plots(distance_metrics['oa_intra1_inter'], title=f'{title}',
+        #                               filename=f'{title}_OA_1',
+        #                               selected_metrics=selected_metrics,
+        #                               models=models_list)
+        # self._metric_comparison_plots(distance_metrics['kld_intra2_inter'], title=f'{title}',
+        #                               filename=f'{title}_KLD_2',
+        #                               selected_metrics=selected_metrics, models=models_list)
+        # self._metric_comparison_plots(distance_metrics['oa_intra2_inter'], title=f'{title}',
+        #                               filename=f'{title}_OA_2',
+        #                               selected_metrics=selected_metrics,
+        #                               models=models_list)
+        self._metric_comparison_plots(distance_metrics['kld_intra1_intra2'], title=f'{title}',
+                                      filename=f'{title}_KLD_3',
+                                      selected_metrics=selected_metrics, models=models_list)
+        self._metric_comparison_plots(distance_metrics['oa_intra1_intra2'], title=f'{title}',
+                                      filename=f'{title}_OA_3',
+                                      selected_metrics=selected_metrics,
+                                      models=models_list)
+
+    def _metric_comparison_plots(self, metrics, title, filename, selected_metrics,
+                                 models=['GAN', 'EVO', 'EVO_ALT', 'LSTM']):
+        for metric in selected_metrics:
+            data = pd.DataFrame()
+            for model in models:
+                data[model] = metrics[model][metric]
+            self._make_boxplot_and_save(data, title=f"{title} - {metric} ({data.shape[0]} amostras)",
+                                        filename=f"{filename}_{metric}")
+
+    def _make_boxplot_and_save(self, dataset, title, filename):
+        data = []
+        text = 'Média e desvio padrão:\n'
+        for model_name in dataset.keys():
+            data.append(dataset[model_name])
+            text += f"{model_name}: {np.mean(dataset[model_name]):.3f}+-{np.std(dataset[model_name]):.3f}\n"
+            print(
+                f"{title}\n \\textit{{{model_name}}} & {np.mean(dataset[model_name]):.3f}\pm{np.std(dataset[model_name]):.3f}")
+
+        # perform Nemenyi post-hoc test
+        discr_data = np.array(data)
+
+        test = sph.posthoc_nemenyi_friedman(discr_data.T)
+        print(f"p-values of posthoc Nemenyi Test ({filename})")
+        test.columns = dataset.keys()
+        test.index = dataset.keys()
+        print('p-valores do teste de Nemenyi')
+        print(test.round(4))
+
+        fig, ax = plt.subplots()
+        fig.set_size_inches(8, 4)
+        ax.set_title(title)
+        ax.text(1.05, 0.5, text + '\n\n' + 'p-valores do teste de Nemenyi:\n' + test.round(4).to_string(), #.to_latex(),
+                transform=ax.transAxes,
+                # transform=plt.gcf().transFigure,
+                fontsize=8)
+        plt.subplots_adjust(right=.7)
+        dataset.plot.box(ax=ax, widths=0.3)
+        plt.savefig(f"{self.quality_config['WORK_DIR']}/plots/{filename}.png")
+
+        # print( f'\\begin{{figure}}[htb]\n'
+        #        f'\t\centering\n'
+        #        f'\t\includegraphics[width=\\textwidth]{{figures/{filename}.png}}\n'
+        #        f'\t\caption{{{title.replace("_", " ")}}}\n'
+        #        f'\t\label{{{filename}}}\n'
+        #        f'\end{{figure}}\n'
+        # )
