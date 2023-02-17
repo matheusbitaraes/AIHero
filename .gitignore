@@ -142,6 +142,7 @@ src/test/results/*
 fluidsynth/
 scripts/quality_comparison/gan_generated_midi/*
 scripts/quality_comparison/ganevo_generated_midi/*
+scripts/quality_comparison/ganevoalt_generated_midi/*
 scripts/quality_comparison/testdata_generated_midi/*
 scripts/quality_comparison/lstm_generated_midi/*
 .idea/
