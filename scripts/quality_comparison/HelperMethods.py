@@ -199,6 +199,15 @@ class HelperMethods:
         FID_metrics.boxplot(ax=ax)
         plt.savefig(f"{self.quality_config['WORK_DIR']}/plots/{title}_FID_boxpot.png")
 
+
+
+        # plots with original dataset
+        fig, ax = plt.subplots()
+        ax.set_title(f"{title} - Histogramas de FIDs ({len(FID_metrics['EVO'])} amostras)")
+        plt.subplots_adjust(right=.7)
+        FID_metrics.hist(ax=ax)
+        plt.savefig(f"{self.quality_config['WORK_DIR']}/plots/{title}_FID_hist.png")
+
     def _print_mgeval_stuff(self, quality_data, models_list, title):
         distance_metrics = self._get_distance_metrics(quality_data)
         selected_metrics = ['total_used_pitch', 'pitch_range', 'avg_IOI', 'total_used_note',

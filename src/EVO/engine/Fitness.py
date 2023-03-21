@@ -24,13 +24,17 @@ class Fitness:
                 }
                 value = self.fitness_function_map.eval(input_vars)
                 fitness_per_function[i] = value
-                i += 1
                 fitness += value
+            i += 1
 
         return fitness, fitness_per_function
 
     def get_function_names(self):
-        return self.fitness_function_map.keys()
+        fitness_function_names = []
+        for function_set in self.function_sets:
+            fitness_function_names.append(f'{function_set["name"]} ({function_set["weight"]:.2f})')
+
+        return fitness_function_names
 
     def update_configs(self, evo_specs):
         new_set = []

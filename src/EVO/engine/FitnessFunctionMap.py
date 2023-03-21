@@ -13,11 +13,8 @@ class FitnessFunctionMap:
             "notes_on_beat_rate": notes_on_beat_rate,
             "note_on_density": note_on_density,
             "note_variety_rate": note_variety_rate,
-            "note_repetitions_rate": note_repetitions_rate,
-            "pitch_proximity": pitch_proximity_rate,
-            "note_sequence_rate": note_sequence_rate,
-            "notes_out_of_scale_rate": notes_out_of_scale_rate,
             "single_notes_rate": single_notes_rate,  # notas unicas, que não são triades ou duplas
+            "notes_out_of_scale_rate": notes_out_of_scale_rate,
         }
 
     def eval(self, input_values):

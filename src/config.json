@@ -9,7 +9,7 @@
   "fluidsynth_path": "fluidsynth/FluidR3_GM.sf2",
   "verbose": true,
   "enable_parallelization": true,
-  "thread_max_workers": 2,
+  "thread_max_workers": 4,
   "checkpoint": {
     "use_checkpoint": true,
     "checkpoint_folder": "src/GEN/data/training_checkpoints"
@@ -39,8 +39,9 @@
     ]
   },
   "evolutionary_algorithm_configs": {
+    "should_generate_gif": true,
     "population_size": 200,
-    "max_generations": 50,
+    "max_generations": 70,
     "tournament_percentage": 0.3,
     "crossover_probability": 0.5,
     "child_mutation_probability": 0.05,

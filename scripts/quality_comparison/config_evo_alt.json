@@ -39,6 +39,7 @@
     ]
   },
   "evolutionary_algorithm_configs": {
+    "should_generate_gif": false,
     "population_size": 200,
     "max_generations": 200,
     "tournament_percentage": 0.3,

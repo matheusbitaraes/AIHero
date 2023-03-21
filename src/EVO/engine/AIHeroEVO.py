@@ -21,7 +21,7 @@ class AIHeroEVO:
     def __init__(self, config):
         self.gen_service = GENService(config)
         self._use_discriminator_as_fitness_function = \
-        config["evolutionary_algorithm_configs"]["fitness_function_configs"]["use_gan_discriminator"]
+            config["evolutionary_algorithm_configs"]["fitness_function_configs"]["use_gan_discriminator"]
         self.fitness_function = Fitness(config["evolutionary_algorithm_configs"]["fitness_function_configs"])
 
         self.gifs_evidence_dir = config["generated_evidences_dir"]
@@ -34,7 +34,8 @@ class AIHeroEVO:
         self._pm = config["evolutionary_algorithm_configs"]["child_mutation_probability"]  # child mutation probability
         self._pnm = config["evolutionary_algorithm_configs"][
             "note_change_probability"]  # probability of changing a note when a child is going on mutation
-        self.should_generate_gif = self._verbose and not config["enable_parallelization"]
+        self.should_generate_gif = config["evolutionary_algorithm_configs"]["should_generate_gif"] and not \
+            config["enable_parallelization"]
         self._max_fitness_value = None
 
     def generate_melody(self, melody_specs, melody_id=""):
@@ -48,8 +49,9 @@ class AIHeroEVO:
         self.fitness_function.update_configs(fitness_function_configs)
 
     def genetic_algorithm(self, melody_specs, melody_id=""):
+        discr_weight = 0.2
         fitness = np.zeros(self._pop_size)
-        self._max_fitness_value = self.fitness_function.get_maximum_possible_value()
+        self._max_fitness_value = self.fitness_function.get_maximum_possible_value() * (1-discr_weight)
         best_individual = None
         best_fitness = []
         best_fitness_per_function = []
@@ -72,7 +74,7 @@ class AIHeroEVO:
             for j in range(0, self._pop_size):
                 fitness[j], fitness_per_function = self.fitness_function.eval(pop[j, :, :], melody_specs)
                 if self._use_discriminator_as_fitness_function:
-                    fitness[j] = fitness[j]*0.8 + discr_fitness[j]*0.2
+                    fitness[j] = fitness[j] * (1-discr_weight) + discr_fitness[j] * discr_weight
             best_fitness_per_function.append(fitness_per_function)
 
             best_fitness.append(fitness[np.argsort(-fitness)[0]])
@@ -80,11 +82,12 @@ class AIHeroEVO:
 
             current_time_min = current_time_min + (time.time() - start) / 60
             if self.should_generate_gif:
+                function_names_list = self.fitness_function.get_function_names()
                 self.generate_and_save_images(epoch=t,
                                               melody=best_individual,
                                               fitness=best_fitness,
                                               fitness_per_function=best_fitness_per_function,
-                                              fitness_function_names=self.fitness_function.get_function_names(),
+                                              fitness_function_names=function_names_list,
                                               current_time_min=current_time_min,
                                               filename_prefix=filename_prefix)
 
@@ -103,6 +106,9 @@ class AIHeroEVO:
 
                 # mutation: note flip
                 for idm in range(children.shape[0]):
+                    # if random() < self._pnm:
+                    #     children[idm, :, :] = self.mutate(children[idm, :, :])
+                    # self.mutate(children[idm, :, :])
                     if random() <= self._pm:
                         melody = self.gen_service.generate_melody(specs=melody_specs, num_melodies=1)
                         raw_children = melody[:, :, :, 0]
@@ -167,11 +173,11 @@ class AIHeroEVO:
     def generate_and_save_images(self, epoch, melody, fitness, fitness_per_function, fitness_function_names,
                                  current_time_min, filename_prefix):
 
-        # fig, axs = plt.subplots(3)
-        fig, axs = plt.subplots(2)
+        fig, axs = plt.subplots(3)
+        # fig, axs = plt.subplots(2)
         fig.set_figheight(10)
-        fig.set_figwidth(5)
-        # fig.set_figwidth(10)
+        # fig.set_figwidth(5)
+        fig.set_figwidth(10)
         fig.suptitle(f'Training progress for generation {epoch} ({round(current_time_min, 2)} min)')
 
         # midi plot
@@ -183,14 +189,16 @@ class AIHeroEVO:
         # fitness plot
         num_measures = len(fitness)
         axs[1].plot(range(num_measures), fitness)
-        axs[1].legend(["Fitness: {:03f} (max is {:3f})".format(fitness[-1], self._max_fitness_value)])
+        perc = 100 * fitness[-1]/self._max_fitness_value
+        legend = "Fitness: {:.2f}. {:.0f}% of max ({:.2f})".format(fitness[-1], perc, self._max_fitness_value)
+        axs[1].legend([legend])
         axs[1].set(xlabel='Epochs', ylabel='Fitness')
 
-        # # fitness per function plot
-        # num_measures = len(fitness_per_function)
-        # axs[2].plot(range(num_measures), fitness_per_function)
-        # axs[2].legend(fitness_function_names)
-        # axs[2].set(xlabel='Epochs', ylabel='Fitness')
+        # fitness per function plot
+        num_measures = len(fitness_per_function)
+        axs[2].plot(range(num_measures), fitness_per_function)
+        axs[2].legend(fitness_function_names)
+        axs[2].set(xlabel='Epochs', ylabel='Fitness')
 
         plt.savefig('.temp/{}_epoch_{:04d}.png'.format(filename_prefix, epoch))
         plt.close()
