@@ -49,9 +49,13 @@ class AIHeroEVO:
         self.fitness_function.update_configs(fitness_function_configs)
 
     def genetic_algorithm(self, melody_specs, melody_id=""):
-        discr_weight = 0.2
+        discr_weight = 0.3
+        discriminator_factor = 5  # Increase discriminator fitness by a factor
         fitness = np.zeros(self._pop_size)
-        self._max_fitness_value = self.fitness_function.get_maximum_possible_value() * (1-discr_weight)
+        if self._use_discriminator_as_fitness_function:
+            self._max_fitness_value = self.fitness_function.get_maximum_possible_value()*(1-discr_weight) + discr_weight
+        else:
+            self._max_fitness_value = self.fitness_function.get_maximum_possible_value()
         best_individual = None
         best_fitness = []
         best_fitness_per_function = []
@@ -70,19 +74,27 @@ class AIHeroEVO:
             # fitness calculation
             if self._use_discriminator_as_fitness_function:
                 discr_fitness = self.gen_service.evaluate_melodies_with_discriminator(pop, melody_specs)
-            fitness_per_function = ""
+                discr_fitness = np.clip(discr_fitness*discriminator_factor, a_min=0, a_max=1)
+            fitness_per_function_list = []
             for j in range(0, self._pop_size):
                 fitness[j], fitness_per_function = self.fitness_function.eval(pop[j, :, :], melody_specs)
                 if self._use_discriminator_as_fitness_function:
+                    fitness_per_function_list.append(np.append(fitness_per_function, discr_fitness[j]))
                     fitness[j] = fitness[j] * (1-discr_weight) + discr_fitness[j] * discr_weight
-            best_fitness_per_function.append(fitness_per_function)
+                else:
+                    fitness_per_function_list.append(fitness_per_function)
 
-            best_fitness.append(fitness[np.argsort(-fitness)[0]])
-            best_individual = pop[np.argsort(-fitness)[0]]
+            best_fitness_id = np.argsort(-fitness)[0]
+            best_fitness.append(fitness[best_fitness_id])
+            best_individual = pop[best_fitness_id]
+            best_fitness_per_function.append(fitness_per_function_list[best_fitness_id])
 
             current_time_min = current_time_min + (time.time() - start) / 60
             if self.should_generate_gif:
                 function_names_list = self.fitness_function.get_function_names()
+
+                if self._use_discriminator_as_fitness_function:
+                    function_names_list.append(f'discriminator ({discr_weight})')
                 self.generate_and_save_images(epoch=t,
                                               melody=best_individual,
                                               fitness=best_fitness,
@@ -104,7 +116,7 @@ class AIHeroEVO:
                 # crossover: one point
                 children = self.crossover(parents)
 
-                # mutation: note flip
+                # mutation
                 for idm in range(children.shape[0]):
                     # if random() < self._pnm:
                     #     children[idm, :, :] = self.mutate(children[idm, :, :])
@@ -176,8 +188,7 @@ class AIHeroEVO:
         fig, axs = plt.subplots(3)
         # fig, axs = plt.subplots(2)
         fig.set_figheight(10)
-        # fig.set_figwidth(5)
-        fig.set_figwidth(10)
+        fig.set_figwidth(5)
         fig.suptitle(f'Training progress for generation {epoch} ({round(current_time_min, 2)} min)')
 
         # midi plot
@@ -196,6 +207,9 @@ class AIHeroEVO:
 
         # fitness per function plot
         num_measures = len(fitness_per_function)
+        for i in range(len(fitness_function_names)):
+            fitness_function_names[i] += f' - {fitness_per_function[-1][i]:.1f}'
+
         axs[2].plot(range(num_measures), fitness_per_function)
         axs[2].legend(fitness_function_names)
         axs[2].set(xlabel='Epochs', ylabel='Fitness')
