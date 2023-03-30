@@ -26,6 +26,8 @@ spec:
           imagePullPolicy: IfNotPresent
           name: ai-hero
           terminationMessagePath: /dev/termination-log
+          environment:
+            PYTHONPATH: /code
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

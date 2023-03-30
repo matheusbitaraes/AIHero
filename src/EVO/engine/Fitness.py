@@ -32,7 +32,7 @@ class Fitness:
     def get_function_names(self):
         fitness_function_names = []
         for function_set in self.function_sets:
-            fitness_function_names.append(f'{function_set["name"]} ({function_set["weight"]:.2f})')
+            fitness_function_names.append(f'{function_set["name"]} [max: {function_set["weight"]:.1f}]')
 
         return fitness_function_names
 
