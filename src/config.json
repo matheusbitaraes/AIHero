@@ -8,7 +8,7 @@
   "generated_evidences_dir": "evidences/generated_melodies_evidences",
   "fluidsynth_path": "fluidsynth/FluidR3_GM.sf2",
   "verbose": true,
-  "enable_parallelization": false,
+  "enable_parallelization": true,
   "thread_max_workers": 4,
   "checkpoint": {
     "use_checkpoint": true,

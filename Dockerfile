@@ -9,8 +9,11 @@ RUN pip install -r /code/requirements.txt
 
 COPY ./src /code/src
 
+RUN mkdir /code/generated_melodies_midi
 RUN mkdir /code/.temp
-RUN mkdir /.
+RUN mkdir /.temp
 
-EXPOSE 80
+ENV PYTHONPATH=/code/
+
+EXPOSE 8083
 CMD ["python", "src/main.py", "src/config.json"]
