@@ -1,22 +1,6 @@
 # AIHero
-AI for music improvisation
+AI Hero is a system capable of generating blues melodies with the purpose of emulating blues improvisation.
+It was developed for a Master's degree thesis.
 
-TODO: insert image of the flow here
-
-## Architecture
-
-## The genetic algorithm
-
-## The graphical interface
-
-
-## Next steps:
-
-
-To run automated tests and generate evidences run:
-
-```commandline
-python -m unittest discover src/test
-```
-
+A more complete README is on its way!
 

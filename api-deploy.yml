@@ -2,8 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: ai-hero
-  name: ai-hero
+    app: ai-hero-server
+  name: ai-hero-server
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -22,12 +22,10 @@ spec:
         app: ai-hero
     spec:
       containers:
-        - image: ai-hero:latest
+        - image: ai-hero-server:latest
           imagePullPolicy: IfNotPresent
-          name: ai-hero
+          name: ai-hero-server
           terminationMessagePath: /dev/termination-log
-          environment:
-            PYTHONPATH: /code
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -36,8 +34,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: ai-hero
-  name: ai-hero
+    app: ai-hero-front
+  name: ai-hero-front
 spec:
   externalTrafficPolicy: Cluster
   type: NodePort
