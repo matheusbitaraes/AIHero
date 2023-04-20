@@ -1,7 +1,5 @@
 <!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 
-<a name="readme-top"></a>
-
 <!--
 *** Thanks for checking out the Best-README-Template. If you have a suggestion
 *** that would make this better, please fork the repo and create a pull request
@@ -48,26 +46,21 @@
 </div>
 
 <!-- TABLE OF CONTENTS -->
+<a name="readme-top"></a>
 <details>
   <summary>Table of Contents</summary>
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
     </li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#model-training">Model Training</a></li>
+        <li><a href="#model-execution">Model Execution</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
@@ -149,7 +142,7 @@ Then, install the dependencies.
 
 <!-- USAGE EXAMPLES -->
 
-## Model Training
+### Model Training
 
 To train the Model (GAN), you should go to the `src/GEN` folder and run the `train_script.py`. All important configurations are available in `src/config.json`
 
@@ -157,7 +150,7 @@ To train the Model (GAN), you should go to the `src/GEN` folder and run the `tra
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Model Execution
+### Model Execution
 
 To execute the Model as a server, you should run
 
@@ -167,7 +160,7 @@ python src/main.py src/config.json
 
 Then, the server, with loaded models, will be available at port `8083` (this can be modified in the `src/config.json`).
 
-## Requesting a Melody
+### Requesting a Melody
 
 To actually request a melody, you could clone the [front-end project](https://github.com/matheusbitaraes/AIHeroFront) and execute it:
 [![Product Name Screen Shot][product-screenshot]](https://aihero.bitaraes.com.br)
